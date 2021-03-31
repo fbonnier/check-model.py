@@ -1,9 +1,7 @@
 import os
 from hbp_validation_framework import ModelCatalog
-import numpy as np
 import requests
 from io import BytesIO
-import json
 
 main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source": "", "file": "git-download.txt", "download_command": "git clone "},
              "cscs": {"pattern": "https://object.cscs.ch", "tar_url":"", "source": "", "file": "cscs-download.txt", "download_command": "wget -N "},
@@ -32,11 +30,11 @@ def get_repository_location(var_i_instance):
                     return ("wget -N --directory-prefix=" + WORKDIR + " " + tar_url)
 
                 else :
-                    print("Error :: " + tar_url + " does not exists, try to clone git project.")
-                    return ("git clone " + var_i_instance["source"] + " " + WORKDIR)
+                    print("Error :: " + tar_url + " does not exist, try to clone git project.")
+                    return ("git clone " + var_i_instance["source"] + " " + WORKDIR  + "/" + os.environ["HBP_INSTANCE_ID"])
             else :
                 # Git clone project
-                return ("git clone " + var_i_instance["source"] + " " + WORKDIR)
+                return ("git clone " + var_i_instance["source"] + " " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])
 
     # Error :: the source does not exists or source pattern not taken into account
     print("Error :: Source '" + var_i_instance["source"] + " (" + var_i_instance["version"] + ")' does not exist or service not available.\n----- Exit FAIL")
@@ -46,6 +44,7 @@ def get_unzip_instruction(var_download_command):
     if (var_download_command.endswith(".tar") or var_download_command.endswith(".tar.gz") or var_download_command.endswith(".zip")):
         filename = var_download_command.split("/")
         return ("arc -overwrite unarchive " + WORKDIR + "/" + filename[len(filename)-1] + " " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])
+    return ("")
 
 def generate_scriptfile (var_instance):
 
@@ -55,21 +54,18 @@ def generate_scriptfile (var_instance):
 
     # write download link into script file
     download_command = get_repository_location(var_instance)
-    f.write(download_command + ";\n")
+    f.write(download_command + "\n")
 
     # write extract command into script file
     instruction = get_unzip_instruction(download_command)
-    f.write(instruction + ";\n")
+    f.write(instruction + "\n")
 
     # CD to project base folder
-    f.write("cd " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ";\n")
+    f.write("cd " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + "\n")
     f.write("while [ $(ls -l | grep -v ^d | wc -l) -lt 2 ]\ndo\nif [ -d $(ls) ]; then \ncd $(ls);\nfi\ndone" + "\n")
 
-    # Error if 'HBP_INSTANCE_ID.sh' does not exists
-    if (not os.path.isfile(WORKDIR + "/" + runscript_file)):
-        print("Error :: " + WORKDIR + "/" + runscript_file + " does not exist.\n----- Exit FAIL")
-        exit(1)
-    f.write("mv " + WORKDIR + "/" + runscript_file + " ." + "\n")
+
+    f.write("cp " + WORKDIR + "/" + runscript_file + " ." + "\n")
     f.write("pwd; ls -alh;" + "\n")
     f.write("chmod +x ./" + runscript_file + "\n")
     f.write("echo \"TODO : Get INPUT and RESULTS\"" + "\n")
@@ -129,7 +125,17 @@ if __name__ == "__main__":
     # Check if WORKDIR environment variable exists and set WORKDIR
     WORKDIR = os.environ.get("WORKDIR", os.environ["HOME"])
 
-    print (WORKDIR)
+    # Error if 'HBP_INSTANCE_ID' final folder exists
+    # (it should not exists due to git clone fatal error)
+    if (os.path.isdir(WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])):
+        print("Error :: " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + " already exists. You should remove this folder to prevent fatal error from Git clone.\n----- Exit FAIL")
+        exit(1)
+
+    # Error if 'HBP_INSTANCE_ID.sh' does not exists
+    if (not os.path.isfile(WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh")):
+        print("Error :: " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh" + " does not exist.\n----- Exit FAIL")
+        exit(1)
+
     # check_1_model (mc, os.environ["HBP_MODEL_ID"])
     check_1_model_instance (mc, os.environ["HBP_INSTANCE_ID"])
 
