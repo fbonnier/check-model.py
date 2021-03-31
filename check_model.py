@@ -15,11 +15,11 @@ WORKDIR = os.environ["HOME"]
 def get_repository_location(var_i_instance):
     # If source is archive, WGET archive file
     if (var_i_instance["source"].endswith(".tar") or var_i_instance["source"].endswith(".tar.gz") or var_i_instance["source"].endswith(".zip")):
-        response = requests.get(tar_url, stream=True)
+        response = requests.get(var_i_instance["source"], stream=True)
         if (response.ok):
-            return ("wget -N --directory-prefix=" + WORKDIR + " " + tar_url)
+            return ("wget -N --directory-prefix=" + WORKDIR + " " + var_i_instance["source"])
         else :
-            print ("Error :: '" + tar_url + "' Response status = " + str(response.status_code))
+            print ("Error :: '" + var_i_instance["source"] + "' Response status = " + str(response.status_code))
 
     # If source is git repo
     else :
