@@ -9,42 +9,55 @@ main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source":
              }
 
 WORKDIR = os.environ["HOME"]
+archive_format = [".tar.gz", ".tar", ".zip", ".rar"]
 
 def get_repository_location(var_i_instance):
     # If source is archive, WGET archive file
-    if (var_i_instance["source"].endswith(".tar") or var_i_instance["source"].endswith(".tar.gz") or var_i_instance["source"].endswith(".zip")):
+    is_archive = [var_i_instance["source"].endswith(format) for format in archive_format]
+    try:
+        # Source is an archive
+        idx = is_archive.index(True)
         response = requests.get(var_i_instance["source"], stream=True)
         if (response.ok):
             return ("wget -N --directory-prefix=" + WORKDIR + " " + var_i_instance["source"])
         else :
             print ("Error :: '" + var_i_instance["source"] + "' Response status = " + str(response.status_code))
+    except ValueError:
+        # Source is not archive
+        print ("Error :: " + var_i_instance["source"] + " is not an archive. Let's try something else ...")
+
 
     # If source is git repo
-    else :
-        if (var_i_instance["source"].startswith(main_repo["github"]["pattern"])):
-            # If model has version number, try to get archive file of version
-            if (var_i_instance["version"]):
-                tar_url = var_i_instance["source"] + "/archive/v" + var_i_instance["version"] + ".tar.gz"
+    if (var_i_instance["source"].startswith(main_repo["github"]["pattern"])):
+        # If model has version number, try to get archive file of version
+        if (var_i_instance["version"]):
+            # For all archive format, ping the file
+            for format in archive_format:
+                tar_url = var_i_instance["source"] + "/archive/v" + var_i_instance["version"] + format
                 response = requests.get(tar_url, stream=True)
                 if(response.ok):
                     return ("wget -N --directory-prefix=" + WORKDIR + " " + tar_url)
 
-                else :
-                    print("Error :: " + tar_url + " does not exist, try to clone git project.")
-                    return ("git clone " + var_i_instance["source"] + " " + WORKDIR  + "/" + os.environ["HBP_INSTANCE_ID"])
-            else :
-                # Git clone project
-                return ("git clone " + var_i_instance["source"] + " " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])
+            print("Error :: " + var_i_instance["source"] + " does not provide archive release, try to clone git project.")
+            return ("git clone " + var_i_instance["source"] + " " + WORKDIR  + "/" + os.environ["HBP_INSTANCE_ID"])
+        else :
+            # Git clone project
+            print("Error :: " + var_i_instance["source"] + " does not have version number, try to clone git project.")
+            return ("git clone " + var_i_instance["source"] + " " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])
 
     # Error :: the source does not exists or source pattern not taken into account
     print("Error :: Source '" + var_i_instance["source"] + " (" + var_i_instance["version"] + ")' does not exist or service not available.\n----- Exit FAIL")
     exit (1)
 
 def get_unzip_instruction(var_download_command):
-    if (var_download_command.endswith(".tar") or var_download_command.endswith(".tar.gz") or var_download_command.endswith(".zip")):
+
+    is_archive = [var_download_command.endswith(format) for format in archive_format]
+    try:
+        idx = is_archive.index(True)
         filename = var_download_command.split("/")
         return ("arc -overwrite unarchive " + WORKDIR + "/" + filename[len(filename)-1] + " " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])
-    return ("")
+    except ValueError:
+        return ("")
 
 def generate_scriptfile (var_instance):
 
