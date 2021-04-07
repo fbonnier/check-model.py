@@ -11,6 +11,20 @@ main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source":
 WORKDIR = os.environ["HOME"]
 archive_format = [".tar.gz", ".tar", ".zip", ".rar"]
 
+def find_html_options (var_instance):
+    html_options = {}
+
+    # If there are html options in the link
+    if "?" in var_instance["source"]:
+        list_of_options = var_instance["source"].split("?")[1].split("&")
+        var_instance["source"] = var_instance["source"].split("?")[0]
+        for i_option in list_of_options:
+            html_options [i_option.split("=")[0]] = i_option.split("=")[1]
+
+    var_instance["html_options"] = html_options
+    return var_instance
+
+
 def get_repository_location(var_i_instance):
     # If source is archive, WGET archive file
     is_archive = [var_i_instance["source"].endswith(format) for format in archive_format]
@@ -64,6 +78,10 @@ def generate_scriptfile (var_instance):
     f = open (WORKDIR + "/run_me.sh", "a")
     f.write("#!/bin/bash\n")
     runscript_file = os.environ["HBP_INSTANCE_ID"] + ".sh"
+
+    # Parse HTML options
+    var_instance = find_html_options(var_instance)
+    print (var_instance)
 
     # write download link into script file
     download_command = get_repository_location(var_instance)
