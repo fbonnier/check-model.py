@@ -1,7 +1,7 @@
 import os
 from hbp_validation_framework import ModelCatalog
 import requests
-from io import BytesIO
+import spur
 
 main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source": "", "file": "git-download.txt", "download_command": "git clone "},
              "cscs": {"pattern": "https://object.cscs.ch", "tar_url":"", "source": "", "file": "cscs-download.txt", "download_command": "wget -N "},
@@ -10,6 +10,22 @@ main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source":
 
 WORKDIR = os.environ["HOME"]
 archive_format = [".tar.gz", ".tar", ".zip", ".rar"]
+
+def get_password ():
+
+    cmd = "pass show HBP/model-catalog"
+    pswd = spur.LocalShell().run(cmd.split(), encoding="utf-8")
+    toreturn = pswd.output.strip()
+    print (toreturn)
+    if (toreturn.startswith("Error:")):
+        print (toreturn + "\nTry to log with HBP_PASS environment variable.")
+        toreturn = os.environ["HBP_PASS"]
+        if not toreturn :
+            print ("Error :: HBP_PASS must be set.\n----- Exit FAIL")
+            exit(1)
+
+    return toreturn
+
 
 def find_html_options (var_instance):
     html_options = {}
@@ -143,12 +159,9 @@ if __name__ == "__main__":
     if (not os.environ.get("HBP_USER")):
         print ("Error :: HBP_USER must be set.\n----- Exit FAIL")
         exit (1)
-    if (not os.environ.get("HBP_PASS")):
-        print ("Error :: HBP_PASS must be set.\n----- Exit FAIL")
-        exit (1)
 
     # Connect to HBP Model Catalog
-    mc = ModelCatalog(os.environ["HBP_USER"], os.environ["HBP_PASS"])
+    mc = ModelCatalog(os.environ["HBP_USER"], get_password())
     os.environ["HBP_AUTH_TOKEN"]=mc.auth.token
 
     open ("run_me.sh", "w").close()
