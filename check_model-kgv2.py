@@ -11,18 +11,26 @@ main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source":
 WORKDIR = os.environ["HOME"]
 archive_format = [".tar.gz", ".tar", ".zip", ".rar"]
 
+EXIT_SUCCESS = 0
+EXIT_FAILURE = 1
+error_msgs = {"continue":"\n----- Continue", "success":"\n----- Exit SUCCESS", "fail":"\n----- Exit FAIL"}
+
+def print_error (error_msg, exit_type=None):
+    print ((("Error :: ") if exit_type!="success" else "Message :: ") + str (error_msg) + ((" " + error_msgs[exit_type]) if exit_type!=None else ""))
+
 def get_password ():
 
     cmd = "pass show HBP/model-catalog"
     pswd = spur.LocalShell().run(cmd.split(), encoding="utf-8")
     toreturn = pswd.output.strip()
-    print (toreturn)
     if (toreturn.startswith("Error:")):
-        print (toreturn + "\nTry to log with HBP_PASS environment variable.")
+        # print (toreturn + "\nTry to log with HBP_PASS environment variable.")
+        print_error (toreturn + "\nTry to log with HBP_PASS environment variable.", "continue")
         toreturn = os.environ["HBP_PASS"]
         if not toreturn :
-            print ("Error :: HBP_PASS must be set.\n----- Exit FAIL")
-            exit(1)
+            print_error ("Error :: HBP_PASS must be set.", "fail")
+            # print ("Error :: HBP_PASS must be set.\n----- Exit FAIL")
+            exit(EXIT_FAILURE)
 
     return toreturn
 
@@ -51,10 +59,13 @@ def get_repository_location(var_i_instance):
         if (response.ok):
             return ("wget -N --directory-prefix=" + WORKDIR + " " + var_i_instance["source"])
         else :
-            print ("Error :: '" + var_i_instance["source"] + "' Response status = " + str(response.status_code))
+            print_error (var_i_instance["source"] + "' Response status = " + str(response.status_code), "fail")
+            # print ("Error :: '" + var_i_instance["source"] + "' Response status = " + str(response.status_code))
+            exit(EXIT_FAILURE)
     except ValueError:
         # Source is not archive
-        print ("Error :: " + var_i_instance["source"] + " is not an archive. Let's try something else ...")
+        print_error (var_i_instance["source"] + " is not an archive. Let's try something else ...", "continue")
+        # print ("Error :: " + var_i_instance["source"] + " is not an archive. Let's try something else ...")
 
 
     # If source is git repo
@@ -68,16 +79,19 @@ def get_repository_location(var_i_instance):
                 if(response.ok):
                     return ("wget -N --directory-prefix=" + WORKDIR + " " + tar_url)
 
-            print("Error :: " + var_i_instance["source"] + " does not provide archive release, try to clone git project.")
+            print_error (var_i_instance["source"] + " does not provide archive release, try to clone git project.", "continue")
+            # print("Error :: " + var_i_instance["source"] + " does not provide archive release, try to clone git project.")
             return ("git clone " + var_i_instance["source"] + " " + WORKDIR  + "/" + os.environ["HBP_INSTANCE_ID"])
         else :
             # Git clone project
-            print("Error :: " + var_i_instance["source"] + " does not have version number, try to clone git project.")
+            print_error (var_i_instance["source"] + " does not have version number, try to clone git project.", "continue")
+            # print("Error :: " + var_i_instance["source"] + " does not have version number, try to clone git project.")
             return ("git clone " + var_i_instance["source"] + " " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])
 
     # Error :: the source does not exists or source pattern not taken into account
-    print("Error :: Source '" + var_i_instance["source"] + " (" + var_i_instance["version"] + ")' does not exist or service not available.\n----- Exit FAIL")
-    exit (1)
+    print_error (var_i_instance["source"] + " (" + var_i_instance["version"] + ")' does not exist or service not available.", "fail")
+    # print("Error :: Source '" + var_i_instance["source"] + " (" + var_i_instance["version"] + ")' does not exist or service not available.\n----- Exit FAIL")
+    exit (EXIT_FAILURE)
 
 def get_unzip_instruction(var_download_command):
 
@@ -129,8 +143,9 @@ def check_1_model_instance (var_mc, var_instance_id):
         generate_scriptfile (i_instance)
 
     else :# Error :: the instance does not exist
-        print("Error :: Instance '" + var_instance_id + "' does not exists.\n----- Exit FAIL")
-        exit (1)
+        print_error (var_instance_id + "' does not exists.", "fail")
+        # print("Error :: Instance '" + var_instance_id + "' does not exists.\n----- Exit FAIL")
+        exit (EXIT_FAILURE)
 
 
 
@@ -142,8 +157,9 @@ def check_1_model (var_mc, var_model_id):
 
     # Error when the model does not have any instance
     if (len(var_list_model_instance) == 0):
-        print ("Error :: Model '" + var_model_id + "' does not have any instance.\n----- Exit FAIL")
-        exit (1)
+        print_error (var_model_id + "' does not have any instance.", "fail")
+        # print ("Error :: Model '" + var_model_id + "' does not have any instance.\n----- Exit FAIL")
+        exit (EXIT_FAILURE)
 
     for i_instance in var_list_model_instance:
         check_1_model_instance (var_mc, i_instance["id"])
@@ -154,11 +170,13 @@ if __name__ == "__main__":
 
     # Check Environment variables exist
     if (not os.environ.get("HBP_INSTANCE_ID")):
-        print ("Error :: HBP_INSTANCE_ID must be set.\n----- Exit FAIL")
-        exit (1)
+        print_error ("HBP_INSTANCE_ID must be set.", "fail")
+        # print ("Error :: HBP_INSTANCE_ID must be set.\n----- Exit FAIL")
+        exit (EXIT_FAILURE)
     if (not os.environ.get("HBP_USER")):
-        print ("Error :: HBP_USER must be set.\n----- Exit FAIL")
-        exit (1)
+        print_error ("HBP_USER must be set.", "fail")
+        # print ("Error :: HBP_USER must be set.\n----- Exit FAIL")
+        exit (EXIT_FAILURE)
 
     # Connect to HBP Model Catalog
     mc = ModelCatalog(os.environ["HBP_USER"], get_password())
@@ -172,13 +190,15 @@ if __name__ == "__main__":
     # Error if 'HBP_INSTANCE_ID' final folder exists
     # (it should not exists due to git clone fatal error)
     if (os.path.isdir(WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])):
-        print("Error :: " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + " already exists. You should remove this folder to prevent fatal error from Git clone.\n----- Exit FAIL")
-        exit(1)
+        print_error (WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + " already exists. You should remove this folder to prevent fatal error from Git clone.", "fail")
+        # print("Error :: " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + " already exists. You should remove this folder to prevent fatal error from Git clone.\n----- Exit FAIL")
+        exit(EXIT_FAILURE)
 
     # Error if 'HBP_INSTANCE_ID.sh' does not exists
     if (not os.path.isfile(WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh")):
-        print("Error :: " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh" + " does not exist.\n----- Exit FAIL")
-        exit(1)
+        print_error (WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh" + " does not exist.", "fail")
+        # print("Error :: " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh" + " does not exist.\n----- Exit FAIL")
+        exit(EXIT_FAILURE)
 
     # check_1_model (mc, os.environ["HBP_MODEL_ID"])
     check_1_model_instance (mc, os.environ["HBP_INSTANCE_ID"])
