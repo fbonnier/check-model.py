@@ -3,10 +3,11 @@ from setuptools import setup, find_packages
 
 install_requires = [
     "hbp-validation-framework",
+    "spur",
 ]
 
 setup(
-    name='check_model',
+    name='check-model',
     version='1.0.0',
     packages=find_packages(),
     url='https://github.com/fbonnier/check-model.py.git',
