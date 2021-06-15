@@ -1,5 +1,5 @@
 import os
-import spur
+#import spur
 import requests
 
 # hbp-validation-framework
@@ -22,18 +22,18 @@ error_msgs = {"continue":"\n----- Continue", "success":"\n----- Exit SUCCESS", "
 def print_error (error_msg, exit_type=None):
     print ((("Error :: ") if exit_type!="success" else "Message :: ") + str (error_msg) + ((" " + error_msgs[exit_type]) if exit_type!=None else ""))
 
-def get_password ():
+#def get_password ():
 
-    cmd = "pass show HBP/model-catalog"
-    pswd = spur.LocalShell().run(cmd.split(), encoding="utf-8")
-    toreturn = pswd.output.strip()
-    if (toreturn.startswith("Error:")):
-        print_error (toreturn + "\nTry to log with HBP_PASS environment variable.", "continue")
-        toreturn = os.environ["HBP_PASS"]
-        if not toreturn :
-            print_error ("Error :: HBP_PASS must be set.", "fail")
-            exit(EXIT_FAILURE)
-    return toreturn
+#    cmd = "pass show HBP/model-catalog"
+#    pswd = spur.LocalShell().run(cmd.split(), encoding="utf-8")
+#    toreturn = pswd.output.strip()
+#    if (toreturn.startswith("Error:")):
+#        print_error (toreturn + "\nTry to log with HBP_PASS environment variable.", "continue")
+#        toreturn = os.environ["HBP_PASS"]
+#        if not toreturn :
+#            print_error ("Error :: HBP_PASS must be set.", "fail")
+#            exit(EXIT_FAILURE)
+#    return toreturn
 
 
 class Instance:
