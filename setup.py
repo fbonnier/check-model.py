@@ -6,7 +6,7 @@ install_requires = [
 ]
 
 setup(
-    name='check-model',
+    name='check_model',
     version='1.0.0',
     packages=find_packages(),
     url='https://github.com/fbonnier/check-model.py.git',
