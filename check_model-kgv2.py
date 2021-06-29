@@ -17,7 +17,6 @@ if __name__ == "__main__":
 
     ## Create Instance object
     model_instance = instance.KGV2_Instance(model_id, username="hplovecraft", password="TheColourOutOfSpace")
-    print (type(model_instance.metadata["parameters"]))
     model_instance.create_script_file(work_dir)
     model_instance.write_code_location()
     model_instance.write_goto_project_folder()
