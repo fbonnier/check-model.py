@@ -1,207 +1,33 @@
 import os
-from hbp_validation_framework import ModelCatalog
-import requests
-import spur
-
-main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source": "", "file": "git-download.txt", "download_command": "git clone "},
-             "cscs": {"pattern": "https://object.cscs.ch", "tar_url":"", "source": "", "file": "cscs-download.txt", "download_command": "wget -N "},
-             "testing": {"pattern": "http://example.com", "tar_url":"", "source": "", "file": "no-download.txt", "download_command": ""},
-             }
-
-WORKDIR = os.environ["HOME"]
-archive_format = [".tar.gz", ".tar", ".zip", ".rar"]
-
-EXIT_SUCCESS = 0
-EXIT_FAILURE = 1
-error_msgs = {"continue":"\n----- Continue", "success":"\n----- Exit SUCCESS", "fail":"\n----- Exit FAIL"}
-
-def print_error (error_msg, exit_type=None):
-    print ((("Error :: ") if exit_type!="success" else "Message :: ") + str (error_msg) + ((" " + error_msgs[exit_type]) if exit_type!=None else ""))
-
-def get_password ():
-
-    cmd = "pass show HBP/model-catalog"
-    pswd = spur.LocalShell().run(cmd.split(), encoding="utf-8")
-    toreturn = pswd.output.strip()
-    if (toreturn.startswith("Error:")):
-        # print (toreturn + "\nTry to log with HBP_PASS environment variable.")
-        print_error (toreturn + "\nTry to log with HBP_PASS environment variable.", "continue")
-        toreturn = os.environ["HBP_PASS"]
-        if not toreturn :
-            print_error ("Error :: HBP_PASS must be set.", "fail")
-            # print ("Error :: HBP_PASS must be set.\n----- Exit FAIL")
-            exit(EXIT_FAILURE)
-
-    return toreturn
-
-
-def find_html_options (var_instance):
-    html_options = {}
-
-    # If there are html options in the link
-    if "?" in var_instance["source"]:
-        list_of_options = var_instance["source"].split("?")[1].split("&")
-        var_instance["source"] = var_instance["source"].split("?")[0]
-        for i_option in list_of_options:
-            html_options [i_option.split("=")[0]] = i_option.split("=")[1]
-
-    var_instance["html_options"] = html_options
-    return var_instance
-
-
-def get_repository_location(var_i_instance):
-    # If source is archive, WGET archive file
-    is_archive = [var_i_instance["source"].endswith(format) for format in archive_format]
-    try:
-        # Source is an archive
-        idx = is_archive.index(True)
-        response = requests.get(var_i_instance["source"], stream=True)
-        if (response.ok):
-            return ("wget -N --directory-prefix=" + WORKDIR + " " + var_i_instance["source"])
-        else :
-            print_error (var_i_instance["source"] + "' Response status = " + str(response.status_code), "fail")
-            # print ("Error :: '" + var_i_instance["source"] + "' Response status = " + str(response.status_code))
-            exit(EXIT_FAILURE)
-    except ValueError:
-        # Source is not archive
-        print_error (var_i_instance["source"] + " is not an archive. Let's try something else ...", "continue")
-        # print ("Error :: " + var_i_instance["source"] + " is not an archive. Let's try something else ...")
-
-
-    # If source is git repo
-    if (var_i_instance["source"].startswith(main_repo["github"]["pattern"])):
-        # If model has version number, try to get archive file of version
-        if (var_i_instance["version"]):
-            # For all archive format, ping the file
-            for format in archive_format:
-                tar_url = var_i_instance["source"] + "/archive/v" + var_i_instance["version"] + format
-                response = requests.get(tar_url, stream=True)
-                if(response.ok):
-                    return ("wget -N --directory-prefix=" + WORKDIR + " " + tar_url)
-
-            print_error (var_i_instance["source"] + " does not provide archive release, try to clone git project.", "continue")
-            # print("Error :: " + var_i_instance["source"] + " does not provide archive release, try to clone git project.")
-            return ("git clone " + var_i_instance["source"] + " " + WORKDIR  + "/" + os.environ["HBP_INSTANCE_ID"])
-        else :
-            # Git clone project
-            print_error (var_i_instance["source"] + " does not have version number, try to clone git project.", "continue")
-            # print("Error :: " + var_i_instance["source"] + " does not have version number, try to clone git project.")
-            return ("git clone " + var_i_instance["source"] + " " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])
-
-    # Error :: the source does not exists or source pattern not taken into account
-    print_error (var_i_instance["source"] + " (" + var_i_instance["version"] + ")' does not exist or service not available.", "fail")
-    # print("Error :: Source '" + var_i_instance["source"] + " (" + var_i_instance["version"] + ")' does not exist or service not available.\n----- Exit FAIL")
-    exit (EXIT_FAILURE)
-
-def get_unzip_instruction(var_download_command):
-
-    is_archive = [var_download_command.endswith(format) for format in archive_format]
-    try:
-        idx = is_archive.index(True)
-        filename = var_download_command.split("/")
-        return ("arc -overwrite unarchive " + WORKDIR + "/" + filename[len(filename)-1] + " " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])
-    except ValueError:
-        return ("")
-
-def generate_scriptfile (var_instance):
-
-    f = open (WORKDIR + "/run_me.sh", "a")
-    f.write("#!/bin/bash\n")
-    runscript_file = os.environ["HBP_INSTANCE_ID"] + ".sh"
-
-    # Parse HTML options
-    var_instance = find_html_options(var_instance)
-    print (var_instance)
-
-    # write download link into script file
-    download_command = get_repository_location(var_instance)
-    f.write(download_command + "\n")
-
-    # write extract command into script file
-    instruction = get_unzip_instruction(download_command)
-    f.write(instruction + "\n")
-
-    # CD to project base folder
-    f.write("cd " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + "\n")
-    f.write("while [ $(ls -l | grep -v ^d | wc -l) -lt 2 ]\ndo\nif [ -d $(ls) ]; then \ncd $(ls);\nfi\ndone" + "\n")
-
-
-    f.write("cp " + WORKDIR + "/" + runscript_file + " ." + "\n")
-    f.write("pwd; ls -alh;" + "\n")
-    f.write("chmod +x ./" + runscript_file + "\n")
-    f.write("echo \"TODO : Get INPUT and RESULTS\"" + "\n")
-    f.write("./" + runscript_file + "\n")
-
-    f.close()
-
-def check_1_model_instance (var_mc, var_instance_id):
-
-    # Error if model-instance-id does not exist
-    i_instance = var_mc.get_model_instance(instance_id=var_instance_id)
-    if (len(i_instance)>0):
-        # Write script that download model
-        generate_scriptfile (i_instance)
-
-    else :# Error :: the instance does not exist
-        print_error (var_instance_id + "' does not exists.", "fail")
-        # print("Error :: Instance '" + var_instance_id + "' does not exists.\n----- Exit FAIL")
-        exit (EXIT_FAILURE)
-
-
-
-def check_1_model (var_mc, var_model_id):
-
-    # Error when the model does not exists
-    # TODO
-    var_list_model_instance = var_mc.list_model_instances(model_id=var_model_id)
-
-    # Error when the model does not have any instance
-    if (len(var_list_model_instance) == 0):
-        print_error (var_model_id + "' does not have any instance.", "fail")
-        # print ("Error :: Model '" + var_model_id + "' does not have any instance.\n----- Exit FAIL")
-        exit (EXIT_FAILURE)
-
-    for i_instance in var_list_model_instance:
-        check_1_model_instance (var_mc, i_instance["id"])
+# from hbp_validation_framework import ModelCatalog
+# import requests
+# import spur
+from check_model import instance
 
 
 if __name__ == "__main__":
 
+    # Test new KG-v2 instantiation
 
-    # Check Environment variables exist
-    if (not os.environ.get("HBP_INSTANCE_ID")):
-        print_error ("HBP_INSTANCE_ID must be set.", "fail")
-        # print ("Error :: HBP_INSTANCE_ID must be set.\n----- Exit FAIL")
-        exit (EXIT_FAILURE)
-    if (not os.environ.get("HBP_USER")):
-        print_error ("HBP_USER must be set.", "fail")
-        # print ("Error :: HBP_USER must be set.\n----- Exit FAIL")
-        exit (EXIT_FAILURE)
+    ## Define a model to try
+    model_id = "803c92ff-16f5-4fea-8827-d8416fd65745" # SpiNNCer
 
-    # Connect to HBP Model Catalog
-    mc = ModelCatalog(os.environ["HBP_USER"], get_password())
-    os.environ["HBP_AUTH_TOKEN"]=mc.auth.token
+    ## Define a working directory
+    work_dir = "."
 
-    open ("run_me.sh", "w").close()
+    ## Create Instance object
+    model_instance = instance.KGV2_Instance(model_id, username="hplovecraft", password="TheColourOutOfSpace")
+    print (type(model_instance.metadata["parameters"]))
+    model_instance.create_script_file(work_dir)
+    model_instance.write_code_location()
+    model_instance.write_code_unzip()
+    model_instance.write_goto_project_folder()
+    model_instance.write_pip_installs()
+    model_instance.write_download_inputs()
+    model_instance.write_download_results()
 
-    # Check if WORKDIR environment variable exists and set WORKDIR
-    WORKDIR = os.environ.get("WORKDIR", os.environ["HOME"])
-
-    # Error if 'HBP_INSTANCE_ID' final folder exists
-    # (it should not exists due to git clone fatal error)
-    if (os.path.isdir(WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"])):
-        print_error (WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + " already exists. You should remove this folder to prevent fatal error from Git clone.", "fail")
-        # print("Error :: " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + " already exists. You should remove this folder to prevent fatal error from Git clone.\n----- Exit FAIL")
-        exit(EXIT_FAILURE)
-
-    # Error if 'HBP_INSTANCE_ID.sh' does not exists
-    if (not os.path.isfile(WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh")):
-        print_error (WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh" + " does not exist.", "fail")
-        # print("Error :: " + WORKDIR + "/" + os.environ["HBP_INSTANCE_ID"] + ".sh" + " does not exist.\n----- Exit FAIL")
-        exit(EXIT_FAILURE)
-
-    # check_1_model (mc, os.environ["HBP_MODEL_ID"])
-    check_1_model_instance (mc, os.environ["HBP_INSTANCE_ID"])
-
+    model_instance.write_code_run()
+    model_instance.close_script_file()
+    print (model_instance.metadata)
     # Exit Done ?
     print ("Done.\n ----- Exit SUCCESS")
