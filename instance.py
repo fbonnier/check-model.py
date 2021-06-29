@@ -19,7 +19,10 @@ EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 error_msgs = {"continue":"\n----- Continue", "success":"\n----- Exit SUCCESS", "fail":"\n----- Exit FAIL"}
 
-archive_format = [".tar.gz", ".tar", ".zip", ".rar"]
+archive_format = {  ".tar.gz": {"extract":"tar -xvf", "output": "-C"},
+                    ".tar": {"extract":"tar -xvf", "output": "-C"},
+                    ".zip": {"extract":"unzip", "output": "-d"}}
+
 main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source": "", "file": "git-download.txt", "download_command": "git clone "},
              "cscs": {"pattern": "https://object.cscs.ch", "tar_url":"", "source": "", "file": "cscs-download.txt", "download_command": "wget -N "},
              "testing": {"pattern": "http://example.com", "tar_url":"", "source": "", "file": "no-download.txt", "download_command": ""},
@@ -96,7 +99,11 @@ class KGV2_Instance (Instance):
         print ("KGV2:: Download Instance")
         print ("KGV2 :: Get model instance metadata ==> START")
         self.metadata = self.catalog.get_model_instance(instance_id=self.id)
-        self.metadata["parameters"] = json.loads(self.metadata["parameters"])
+        if self.metadata["parameters"]:
+            self.metadata["parameters"] = json.loads(self.metadata["parameters"])
+        else :
+            print_error ("KGV2_Instance :: download_instance_metadata :: No parameters option in metadata", "continue")
+
         self.parse_html_options ()
         print ("KGV2 :: Get model instance metadata ==> END")
 
@@ -143,11 +150,14 @@ class KGV2_Instance (Instance):
         try:
             # Source is an archive
             idx = is_archive.index(True)
+
             response = requests.get(self.metadata["source"], stream=True)
             if (response.ok):
-                self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + self.metadata["source"] + "\n")
+                self.script_file_ptr.write ("# Downloading archive\n")
+                self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + self.metadata["source"] + "\n\n")
                 self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
                 print ("KGV2 :: write_code_location ==> END")
+                self.write_code_unzip()
                 return
             else :
                 print_error (self.metadata["source"] + "' Response status = " + str(response.status_code), "fail")
@@ -169,9 +179,11 @@ class KGV2_Instance (Instance):
                     tar_url = self.metadata["source"] + "/archive/v" + self.metadata["version"] + format
                     response = requests.get(tar_url, stream=True)
                     if(response.ok):
-                        self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + tar_url + "\n")
+                        self.script_file_ptr.write ("# Downloading Archive \n")
+                        self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + tar_url + "\n\n")
                         self.metadata["archive_name"] = tar_url.split("/")[-1]
                         print("Try to get release archive from version number ... SUCCESS")
+                        self.write_code_unzip()
                         print ("KGV2 :: write_code_location ==> END")
                         return
 
@@ -196,17 +208,28 @@ class KGV2_Instance (Instance):
 
     def write_code_unzip (self):
         print ("KGV2 :: write_code_unzip ==> START")
-        is_archive = [self.metadata["archive_name"].endswith(format) for format in archive_format]
-        try:
-            idx = is_archive.index(True)
-            # filename = var_download_command.split("/")
-            self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
-        except ValueError as e:
-            print_error ("KGV2::write_code_unzip", "fail")
-            print (e)
-            self.script_file_ptr.close()
-            exit (EXIT_FAILURE)
-        print ("KGV2 :: write_code_unzip ==> END")
+        # is_archive = [self.metadata["archive_name"].endswith(format) for format in archive_format]
+
+        for i_format in archive_format:
+            if self.metadata["archive_name"].endswith(i_format):
+                self.script_file_ptr.write ("# Extracting model instance\n")
+                self.script_file_ptr.write (str (archive_format [i_format]["extract"]) + " " + self.workdir + "/" + self.metadata["archive_name"] + " " + str (archive_format [i_format]["output"]) + " "  + self.workdir + "/" + self.id + "\n")
+                print ("KGV2 :: write_code_unzip ==> END")
+                return
+        print_error ("KGV2::write_code_unzip, Archive format not recognized", "fail")
+        self.script_file_ptr.close()
+        exit (EXIT_FAILURE)
+        # try:
+        #     idx = is_archive.index(True)
+        #
+        #     # filename = var_download_command.split("/")
+        #     # self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
+        #     self.script_file_ptr.write (str (archive_format [idx]) + " " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
+        # except ValueError as e:
+        #     print_error ("KGV2::write_code_unzip", "fail")
+        #     print (e)
+        #     self.script_file_ptr.close()
+        #     exit (EXIT_FAILURE)
 
     def write_goto_project_folder(self):
         print ("KGV2 :: write_goto_project_folder ==> START")
@@ -220,20 +243,24 @@ class KGV2_Instance (Instance):
         print ("KGV2 :: write_pip_installs ==> START")
         self.script_file_ptr.write ("# Additional PIP packages\n")
         # TODO : try-catch to catch missing pip_install parameter
-        try :
-            if self.metadata["parameters"]["pip_installs"]:
-                print ("Installing additional PIP packages")
-                for ipackage in self.metadata["parameters"]["pip_installs"]:
-                    self.script_file_ptr.write ("pip install " + ipackage + "\n")
-                self.script_file_ptr.write ("\n")
-            else:
-                print ("No additional PIP package to install")
-                self.script_file_ptr.write ("# No additional packages to install\n\n")
-        except ValueError as e:
-            print_error ("KGV2::write_pip_installs", "fail")
-            print (e)
-            self.script_file_ptr.close()
-            exit (EXIT_FAILURE)
+        if not self.metadata["parameters"]:
+            self.script_file_ptr.write ("# NO Additional PIP packages\n")
+            print_error ("KGV2::write_pip_installs:: Parameters field does not exist, No additional Pip install -- Continue", "continue")
+        else:
+            try :
+                if self.metadata["parameters"]["pip_installs"]:
+                    print ("Installing additional PIP packages")
+                    for ipackage in self.metadata["parameters"]["pip_installs"]:
+                        self.script_file_ptr.write ("pip3 install " + ipackage + "\n")
+                    self.script_file_ptr.write ("\n")
+                else:
+                    print ("No additional PIP package to install")
+                    self.script_file_ptr.write ("# No additional packages to install\n\n")
+            except ValueError as e:
+                print_error ("KGV2::write_pip_installs", "fail")
+                print (e)
+                self.script_file_ptr.close()
+                exit (EXIT_FAILURE)
         print ("KGV2 :: write_pip_installs ==> END")
 
     def write_download_results (self):
@@ -261,12 +288,18 @@ class KGV2_Instance (Instance):
         # self.script_file_ptr.write("echo \"TODO : Get INPUT and RESULTS\"" + "\n")
         # self.script_file_ptr.write("./" + runscript_file + "\n")
         self.script_file_ptr.write ("# Run instruction\n")
-        if self.metadata["parameters"]["run"]:
-            self.script_file_ptr.write(self.metadata["parameters"]["run"] + "\n")
-        else:
+        if not self.metadata["parameters"]:
             print_error ("No run script specified", "fail")
+            self.script_file_ptr.write ("# NO Run instruction specified\n")
             self.script_file_ptr.close()
             exit(EXIT_FAILURE)
+        else:
+            if self.metadata["parameters"]["run"]:
+                self.script_file_ptr.write(self.metadata["parameters"]["run"] + "\n")
+            else:
+                print_error ("No run script specified", "fail")
+                self.script_file_ptr.close()
+                exit(EXIT_FAILURE)
         print ("KGV2 :: write_code_run ==> END")
 
     def close_script_file (self):
