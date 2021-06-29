@@ -1,7 +1,7 @@
 import os
 #import spur
 import requests
-
+import json
 # hbp-validation-framework
 from hbp_validation_framework import ModelCatalog
 
@@ -18,6 +18,12 @@ from fuzzywuzzy import process
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 error_msgs = {"continue":"\n----- Continue", "success":"\n----- Exit SUCCESS", "fail":"\n----- Exit FAIL"}
+
+archive_format = [".tar.gz", ".tar", ".zip", ".rar"]
+main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source": "", "file": "git-download.txt", "download_command": "git clone "},
+             "cscs": {"pattern": "https://object.cscs.ch", "tar_url":"", "source": "", "file": "cscs-download.txt", "download_command": "wget -N "},
+             "testing": {"pattern": "http://example.com", "tar_url":"", "source": "", "file": "no-download.txt", "download_command": ""},
+             }
 
 def print_error (error_msg, exit_type=None):
     print ((("Error :: ") if exit_type!="success" else "Message :: ") + str (error_msg) + ((" " + error_msgs[exit_type]) if exit_type!=None else ""))
@@ -53,7 +59,16 @@ class Instance:
     id = None
     catalog = None
     workdir = ""
-    def download_instance (self, new_id):
+
+    metadata = None
+    # Additional data in Metadata:
+    ##  html_options
+    ##  archive_name
+
+
+    script_file_ptr = None
+
+    def download_instance_metadata (self):
         pass
 
     def __init__ (self, new_id):
@@ -64,7 +79,7 @@ class Instance:
 
 class KGV3_Instance (Instance):
 
-    def download_instance (self):
+    def download_instance_metadata (self):
         print ("KGV3:: Download Instance")
 
     def connect_to_service (self):
@@ -77,8 +92,187 @@ class KGV3_Instance (Instance):
 
 class KGV2_Instance (Instance):
 
-    def download_instance (self, new_id):
+    def download_instance_metadata (self):
         print ("KGV2:: Download Instance")
+        print ("KGV2 :: Get model instance metadata ==> START")
+        self.metadata = self.catalog.get_model_instance(instance_id=self.id)
+        self.metadata["parameters"] = json.loads(self.metadata["parameters"])
+        self.parse_html_options ()
+        print ("KGV2 :: Get model instance metadata ==> END")
+
+    def create_script_file (self, work_dir):
+        print ("KGV2 :: create_script_file ==> START")
+        # Error if metadata empty
+        if (not self.metadata):
+            print_error ("KGV2_Instance :: create_script_file :: meta_data empty", exit_type="fail")
+            exit(EXIT_FAILURE)
+
+        # Metadata not empty
+        self.script_file_ptr = open ("run_me.sh", "a")
+        # f = open (WORKDIR + "/run_me.sh", "a")
+        self.script_file_ptr.write("#!/bin/bash\n")
+        runscript_file = work_dir + self.id + ".sh"
+        self.workdir = work_dir
+        print ("KGV2 :: create_script_file ==> END")
+
+    def parse_html_options (self):
+        print ("KGV2 :: parse_html_options ==> START")
+        html_options = {}
+
+        # If there are html options in the link
+        if "?" in self.metadata["source"]:
+            list_of_options = self.metadata["source"].split("?")[1].split("&")
+            self.metadata["source"] = self.metadata["source"].split("?")[0]
+            for i_option in list_of_options:
+                html_options [i_option.split("=")[0]] = i_option.split("=")[1]
+
+        self.metadata["html_options"] = html_options
+        print ("KGV2 :: parse_html_options ==> END")
+
+    def write_code_location (self):
+        print ("KGV2 :: write_code_location ==> START")
+        # If file pointer is Null, exit fail
+        if not self.script_file_ptr:
+            print_error("KGV2::write_code_location:: Null file pointer", exit_type="fail")
+
+        print (self.metadata["source"])
+
+        # Else get code location
+        # If source is archive, WGET archive file
+        is_archive = [self.metadata["source"].endswith(format) for format in archive_format]
+        try:
+            # Source is an archive
+            idx = is_archive.index(True)
+            response = requests.get(self.metadata["source"], stream=True)
+            if (response.ok):
+                self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + self.metadata["source"] + "\n")
+                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
+                print ("KGV2 :: write_code_location ==> END")
+                return
+            else :
+                print_error (self.metadata["source"] + "' Response status = " + str(response.status_code), "fail")
+                self.script_file_ptr.close()
+                exit(EXIT_FAILURE)
+        except ValueError:
+            # Source is not archive
+            print_error (self.metadata["source"] + " is not an archive. Let's try something else ...", "continue")
+
+
+        # If source is git repo
+        if (self.metadata["source"].startswith(main_repo["github"]["pattern"])):
+            # If model has version number, try to get archive file of version
+            print ("Source is GIT repository")
+            if (self.metadata["version"]):
+                # For all archive format, ping the file
+                print("Try to get release archive from version number ...")
+                for format in archive_format:
+                    tar_url = self.metadata["source"] + "/archive/v" + self.metadata["version"] + format
+                    response = requests.get(tar_url, stream=True)
+                    if(response.ok):
+                        self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + tar_url + "\n")
+                        self.metadata["archive_name"] = tar_url.split("/")[-1]
+                        print("Try to get release archive from version number ... SUCCESS")
+                        print ("KGV2 :: write_code_location ==> END")
+                        return
+
+                print("Try to get release archive from version number ... FAIL")
+                print_error (self.metadata["source"] + " does not provide archive release, try to clone GIT project.", "continue")
+                self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id + "\n")
+                print ("KGV2 :: write_code_location ==> END")
+                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
+                return
+            else :
+                # Git clone project
+                print_error (self.metadata["source"] + " does not have version number, try to clone GIT project.", "continue")
+                self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir + "/" + self.id + "\n")
+                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
+                print ("KGV2 :: write_code_location ==> END")
+                return
+
+        # Error :: the source does not exists or source pattern not taken into account
+        print_error (self.metadata["source"] + " (" + self.metadata["version"] + ")' does not exist or service not available.", "fail")
+        self.script_file_ptr.close()
+        exit (EXIT_FAILURE)
+
+    def write_code_unzip (self):
+        print ("KGV2 :: write_code_unzip ==> START")
+        is_archive = [self.metadata["archive_name"].endswith(format) for format in archive_format]
+        try:
+            idx = is_archive.index(True)
+            # filename = var_download_command.split("/")
+            self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
+        except ValueError as e:
+            print_error ("KGV2::write_code_unzip", "fail")
+            print (e)
+            self.script_file_ptr.close()
+            exit (EXIT_FAILURE)
+        print ("KGV2 :: write_code_unzip ==> END")
+
+    def write_goto_project_folder(self):
+        print ("KGV2 :: write_goto_project_folder ==> START")
+        # CD to project base folder
+        print ("Go to project root folder")
+        self.script_file_ptr.write("cd " + self.workdir + "/" + self.id + "\n")
+        self.script_file_ptr.write("while [ $(ls -l | grep -v ^d | wc -l) -lt 2 ]\ndo\nif [ -d $(ls) ]; then \ncd $(ls);\nfi\ndone" + "\n\n")
+        print ("KGV2 :: write_goto_project_folder ==> END")
+
+    def write_pip_installs (self):
+        print ("KGV2 :: write_pip_installs ==> START")
+        self.script_file_ptr.write ("# Additional PIP packages\n")
+        # TODO : try-catch to catch missing pip_install parameter
+        try :
+            if self.metadata["parameters"]["pip_installs"]:
+                print ("Installing additional PIP packages")
+                for ipackage in self.metadata["parameters"]["pip_installs"]:
+                    self.script_file_ptr.write ("pip install " + ipackage + "\n")
+                self.script_file_ptr.write ("\n")
+            else:
+                print ("No additional PIP package to install")
+                self.script_file_ptr.write ("# No additional packages to install\n\n")
+        except ValueError as e:
+            print_error ("KGV2::write_pip_installs", "fail")
+            print (e)
+            self.script_file_ptr.close()
+            exit (EXIT_FAILURE)
+        print ("KGV2 :: write_pip_installs ==> END")
+
+    def write_download_results (self):
+        print ("KGV2 :: write_download_results ==> START")
+        self.script_file_ptr.write ("# Download and place expected results\n")
+        self.script_file_ptr.write ("# TODO\n")
+        self.script_file_ptr.write ("\n")
+        print ("----- TODO -----")
+        print ("KGV2 :: write_download_results ==> END")
+
+    def write_download_inputs (self):
+        print ("KGV2 :: write_download_inputs ==> START")
+        self.script_file_ptr.write ("# Download and place inputs\n")
+        self.script_file_ptr.write ("# TODO\n")
+        self.script_file_ptr.write ("\n")
+        print ("----- TODO -----")
+        print ("KGV2 :: write_download_inputs ==> END")
+
+    def write_code_run (self):
+        print ("KGV2 :: write_code_run ==> START")
+        # runscript_file = self.id + ".sh"
+        # self.script_file_ptr.write("cp " + self.workdir + "/" + runscript_file + " ." + "\n")
+        # self.script_file_ptr.write("pwd; ls -alh;" + "\n")
+        # self.script_file_ptr.write("chmod +x ./" + runscript_file + "\n")
+        # self.script_file_ptr.write("echo \"TODO : Get INPUT and RESULTS\"" + "\n")
+        # self.script_file_ptr.write("./" + runscript_file + "\n")
+        self.script_file_ptr.write ("# Run instruction\n")
+        if self.metadata["parameters"]["run"]:
+            self.script_file_ptr.write(self.metadata["parameters"]["run"] + "\n")
+        else:
+            print_error ("No run script specified", "fail")
+            self.script_file_ptr.close()
+            exit(EXIT_FAILURE)
+        print ("KGV2 :: write_code_run ==> END")
+
+    def close_script_file (self):
+        print ("KGV2 :: close_script_file ==> START")
+        self.script_file_ptr.close()
+        print ("KGV2 :: close_script_file ==> END")
 
     def connect_to_service (self, username = None, password = None):
         # Connect to HBP Model Catalog
@@ -86,7 +280,7 @@ class KGV2_Instance (Instance):
         return ModelCatalog(username=username, password=password)
 
     def __init__ (self, new_id, username=None, password=None):
-        super().__init__ (self, new_id)
-        self.catalog = connect_to_service(username=username, password=password)
+        super().__init__ (new_id)
+        self.catalog = self.connect_to_service(username=username, password=password)
         os.environ["HBP_AUTH_TOKEN"]=self.catalog.auth.token
-        download_instance (new_id)
+        self.download_instance_metadata ()
