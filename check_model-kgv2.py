@@ -1,24 +1,24 @@
 import os
-# from hbp_validation_framework import ModelCatalog
-# import requests
-# import spur
-from check_model import instance
-
+from check_model import instance_kgv2 as instance
 
 if __name__ == "__main__":
 
     # Test new KG-v2 instantiation
 
     ## Define a model to try
-    model_id = "803c92ff-16f5-4fea-8827-d8416fd65745" # SpiNNCer
+    model_id = os.environ["HBP_INSTANCE_ID"] # SpiNNCer
 
     ## Define a working directory
     work_dir = "."
+    auth_token = os.environ["HBP_AUTH_TOKEN"]
+    auth_user = os.environ["HBP_USER"]
+    auth_pass = os.environ["HBP_PASSWORD"]
 
     ## Create Instance object
-    model_instance = instance.KGV2_Instance(model_id, username="hplovecraft", password="TheColourOutOfSpace")
+    model_instance = instance.KGV2_Instance(model_id, username=auth_user, password=auth_pass, token=auth_token)
     model_instance.create_script_file(work_dir)
     model_instance.write_code_location()
+    model_instance.write_code_unzip ()
     model_instance.write_goto_project_folder()
     model_instance.write_pip_installs()
     model_instance.write_download_inputs()
