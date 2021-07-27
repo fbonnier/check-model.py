@@ -30,32 +30,56 @@ class KGV3_Instance (Instance):
         super().parse_html_options()
 
     def write_code_location (self):
-        pass
+        super().write_code_location()
 
     def write_code_unzip (self):
-        pass
+        super().write_code_unzip()
 
     def write_goto_project_folder(self):
-        pass
+        super().write_goto_project_folder()
 
     def write_pip_installs (self):
-        pass
+        super().write_pip_installs()
 
     def write_download_results (self):
-        pass
+        print ("KGV2 :: write_download_results ==> START")
+        self.script_file_ptr.write ("# Download and place expected results\n")
+        self.script_file_ptr.write ("# TODO\n")
+        self.script_file_ptr.write ("\n")
+        print ("----- TODO -----")
+        print ("KGV2 :: write_download_results ==> END")
 
     def write_download_inputs (self):
-        pass
+        print ("KGV2 :: write_download_inputs ==> START")
+        self.script_file_ptr.write ("# Download and place inputs\n")
+        self.script_file_ptr.write ("# TODO\n")
+        self.script_file_ptr.write ("\n")
+        print ("----- TODO -----")
+        print ("KGV2 :: write_download_inputs ==> END")
 
     def write_code_run (self):
-        pass
+        print ("KGV2 :: write_code_run ==> START")
+        # runscript_file = self.id + ".sh"
+        # self.script_file_ptr.write("cp " + self.workdir + "/" + runscript_file + " ." + "\n")
+        # self.script_file_ptr.write("pwd; ls -alh;" + "\n")
+        # self.script_file_ptr.write("chmod +x ./" + runscript_file + "\n")
+        # self.script_file_ptr.write("echo \"TODO : Get INPUT and RESULTS\"" + "\n")
+        # self.script_file_ptr.write("./" + runscript_file + "\n")
+        self.script_file_ptr.write ("# Run instruction\n")
+        if self.metadata["parameters"]["run"]:
+            self.script_file_ptr.write(self.metadata["parameters"]["run"] + "\n")
+        else:
+            print_error ("No run script specified", "fail")
+            self.script_file_ptr.close()
+            exit(EXIT_FAILURE)
+        print ("KGV2 :: write_code_run ==> END")
 
     def close_script_file (self):
-        pass
+        super().close_script_file()
 
 
-    def connect_to_service (self):
-        token_handler = SimpleToken(os.environ["HBP_AUTH_TOKEN"])
+    def connect_to_service (self, token):
+        token_handler = SimpleToken(token)
         return KGv3(host="core.kg.ebrains.eu", token_handler=token_handler)
 
     def __init__ (self, new_id):
