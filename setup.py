@@ -5,6 +5,8 @@ install_requires = [
     "hbp-validation-framework",
     "spur",
     "kg-core",
+    "argh",
+    "watchdog",
 ]
 
 setup(
