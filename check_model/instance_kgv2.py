@@ -4,7 +4,7 @@ import requests
 import json
 # hbp-validation-framework
 from hbp_validation_framework import ModelCatalog
-import instance
+import check_model.instance as instance
 
 # KG-v3, KG-Core Python Interface
 from kg_core.oauth import SimpleToken
@@ -12,7 +12,7 @@ from kg_core.kg import KGv3
 from kg_core.models import Stage
 from kg_core.models import Pagination
 
-class KGV2_Instance (Instance):
+class KGV2_Instance (instance.Instance):
 
     def download_instance_metadata (self):
         print ("KGV2:: Download Instance")
@@ -28,70 +28,11 @@ class KGV2_Instance (Instance):
     def parse_html_options (self):
         super().parse_html_options()
 
+    def get_code_location (self):
+        return super().get_code_location()
+
     def write_code_location (self):
-        print ("KGV2 :: write_code_location ==> START")
-        # If file pointer is Null, exit fail
-        if not self.script_file_ptr:
-            print_error("KGV2::write_code_location:: Null file pointer", exit_type="fail")
-
-        print (self.metadata["source"])
-
-        # Else get code location
-        # If source is archive, WGET archive file
-        is_archive = [self.metadata["source"].endswith(format) for format in archive_format]
-        try:
-            # Source is an archive
-            idx = is_archive.index(True)
-            response = requests.get(self.metadata["source"], stream=True)
-            if (response.ok):
-                self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + self.metadata["source"] + "\n")
-                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
-                print ("KGV2 :: write_code_location ==> END")
-                return
-            else :
-                print_error (self.metadata["source"] + "' Response status = " + str(response.status_code), "fail")
-                self.script_file_ptr.close()
-                exit(EXIT_FAILURE)
-        except ValueError:
-            # Source is not archive
-            print_error (self.metadata["source"] + " is not an archive. Let's try something else ...", "continue")
-
-
-        # If source is git repo
-        if (self.metadata["source"].startswith(main_repo["github"]["pattern"])):
-            # If model has version number, try to get archive file of version
-            print ("Source is GIT repository")
-            if (self.metadata["version"]):
-                # For all archive format, ping the file
-                print("Try to get release archive from version number ...")
-                for format in archive_format:
-                    tar_url = self.metadata["source"] + "/archive/v" + self.metadata["version"] + format
-                    response = requests.get(tar_url, stream=True)
-                    if(response.ok):
-                        self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + tar_url + "\n")
-                        self.metadata["archive_name"] = tar_url.split("/")[-1]
-                        print("Try to get release archive from version number ... SUCCESS")
-                        print ("KGV2 :: write_code_location ==> END")
-                        return
-
-                print("Try to get release archive from version number ... FAIL")
-                print_error (self.metadata["source"] + " does not provide archive release, try to clone GIT project.", "continue")
-                self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id + "\n")
-                print ("KGV2 :: write_code_location ==> END")
-                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
-                return
-            else :
-                # Git clone project
-                print_error (self.metadata["source"] + " does not have version number, try to clone GIT project.", "continue")
-                self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir + "/" + self.id + "\n")
-                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
-                print ("KGV2 :: write_code_location ==> END")
-                return
-
-        # Error :: the source does not exists or source pattern not taken into account
-        print_error (self.metadata["source"] + " (" + self.metadata["version"] + ")' does not exist or service not available.", "fail")
-        self.script_file_ptr.close()
-        exit (EXIT_FAILURE)
+        super().write_code_location()
 
     def write_code_unzip (self):
         super().write_code_unzip()
@@ -100,25 +41,8 @@ class KGV2_Instance (Instance):
         super().write_goto_project_folder()
 
     def write_pip_installs (self):
-        print ("KGV2 :: write_pip_installs ==> START")
-        self.script_file_ptr.write ("# Additional PIP packages\n")
-        # TODO : try-catch to catch missing pip_install parameter
-        try :
-            if self.metadata["parameters"]["pip_installs"]:
-                print ("Installing additional PIP packages")
-                for ipackage in self.metadata["parameters"]["pip_installs"]:
-                    self.script_file_ptr.write ("pip install " + ipackage + "\n")
-                self.script_file_ptr.write ("\n")
-            else:
-                print ("No additional PIP package to install")
-                self.script_file_ptr.write ("# No additional packages to install\n\n")
-        except ValueError as e:
-            print_error ("KGV2::write_pip_installs", "fail")
-            print (e)
-            self.script_file_ptr.close()
-            exit (EXIT_FAILURE)
-        print ("KGV2 :: write_pip_installs ==> END")
-
+        super().write_pip_installs()
+        
     def write_download_results (self):
         print ("KGV2 :: write_download_results ==> START")
         self.script_file_ptr.write ("# Download and place expected results\n")
@@ -155,13 +79,14 @@ class KGV2_Instance (Instance):
     def close_script_file (self):
         super().close_script_file()
 
-    def connect_to_service (self, username = None, password = None):
+    def connect_to_service (self, username = None, password = None, token = None):
         # Connect to HBP Model Catalog
         # return ModelCatalog(os.environ["HBP_USER"], get_password())
-        return ModelCatalog(username=username, password=password)
+        return ModelCatalog(username=username, password=password, token=token)
+        # return ModelCatalog()
 
-    def __init__ (self, new_id, username=None, password=None):
+    def __init__ (self, new_id, username=None, password=None, token=None):
         super().__init__ (new_id)
-        self.catalog = self.connect_to_service(username=username, password=password)
-        os.environ["HBP_AUTH_TOKEN"]=self.catalog.auth.token
+        self.catalog = self.connect_to_service(username=username, password=password, token=token)
+        # os.environ["HBP_AUTH_TOKEN"]=self.catalog.auth.token
         self.download_instance_metadata ()
