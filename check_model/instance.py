@@ -54,13 +54,13 @@ class Instance:
     ##  archive_name
     script_file_ptr = None
 
-    def get_watchdog ():
+    def get_watchdog (self):
         # Get watchdog/watchmedo instructions
         print ("get_watchdog ==> START")
         print ("get_watchdog ==> END")
         return ("watchmedo shell-command --patterns='*' --recursive --command='echo ${watch_src_path}' . & WATCHDOG_PID=$!\n")
 
-    def write_watchdog ():
+    def write_watchdog (self):
         # Write watchdog/watchmedo instructions
         print ("write_watchdog ==> START")
         assert (self.script_file_ptr != None)
