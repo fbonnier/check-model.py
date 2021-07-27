@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     ## Define a working directory
     work_dir = "."
-    auth_token = os.environ["HBP_AUTH_TOKEN"]
+    auth_token = os.environ.get("HBP_AUTH_TOKEN", None)
     auth_user = os.environ["HBP_USER"]
     auth_pass = os.environ["HBP_PASSWORD"]
 
