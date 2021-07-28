@@ -26,6 +26,7 @@ if __name__ == "__main__":
 
     model_instance.write_watchdog() 
     model_instance.write_code_run()
+    model_instance.write_watchdog_kill()
     model_instance.close_script_file()
     print (model_instance.metadata)
     # Exit Done ?
