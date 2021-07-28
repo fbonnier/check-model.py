@@ -66,6 +66,13 @@ class Instance:
         assert (self.script_file_ptr != None)
         self.script_file_ptr.write(self.get_watchdog ())
         print ("write_watchdog ==> END")
+        
+    def write_watchdog_kill (self):
+        # Write instruction to kill Watchdog from PID
+        print ("write_watchdog_kill ==> START")
+        assert (self.script_file_ptr != None)
+        self.script_file_ptr.write("kill -15 $WATCHDOG_PID\n\n")
+        print ("write_watchdog_kill ==> END")
 
     def download_instance_metadata (self):
         pass
