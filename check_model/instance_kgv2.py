@@ -26,17 +26,22 @@ class KGV2_Instance (instance.Instance):
     def write_download_results (self):
         print ("KGV2 :: write_download_results ==> START")
         self.script_file_ptr.write ("# Download and place expected results\n")
-        self.script_file_ptr.write ("# TODO\n")
+        if self.metadata["parameters"]["results"]:
+            for iresult in self.metadata["parameters"]["results"]:
+                if iresult["url"] and iresult["destination"]:
+                    self.script_file_ptr.write ("wget -N " + iresult["url"] + " --directory-prefix=" + iresult["destination"] + "\n")
         self.script_file_ptr.write ("\n")
-        print ("----- TODO -----")
         print ("KGV2 :: write_download_results ==> END")
 
     def write_download_inputs (self):
         print ("KGV2 :: write_download_inputs ==> START")
         self.script_file_ptr.write ("# Download and place inputs\n")
-        self.script_file_ptr.write ("# TODO\n")
+        if self.metadata["parameters"]["inputs"]:
+            for iinput in self.metadata["parameters"]["inputs"]:
+                if iinput["url"] and iinput["destination"]:
+                    self.script_file_ptr.write ("wget -N " + iinput["url"] + " --directory-prefix=" + iinput["destination"] + "\n")
+
         self.script_file_ptr.write ("\n")
-        print ("----- TODO -----")
         print ("KGV2 :: write_download_inputs ==> END")
 
     def write_code_run (self):
