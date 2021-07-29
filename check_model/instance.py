@@ -264,7 +264,7 @@ class Instance:
             if self.metadata["parameters"]["pip_installs"]:
                 print ("Installing additional PIP packages")
                 for ipackage in self.metadata["parameters"]["pip_installs"]:
-                    self.script_file_ptr.write ("pip3 install " + ipackage + "\n")
+                    self.script_file_ptr.write ("pip3 install -e " + ipackage + "\n")
                 self.script_file_ptr.write ("\n")
             else:
                 print ("No additional PIP package to install")
