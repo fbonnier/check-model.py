@@ -1,8 +1,9 @@
 import os
-#import spur
+
 import requests
 import json
-# hbp-validation-framework
+
+#HBP-Validation-Framework
 from hbp_validation_framework import ModelCatalog
 import check_model.instance as instance
 
@@ -22,27 +23,6 @@ class KGV2_Instance (instance.Instance):
         self.parse_html_options ()
         print ("KGV2 :: Get model instance metadata ==> END")
 
-    def create_script_file (self, work_dir):
-        super().create_script_file(work_dir)
-
-    def parse_html_options (self):
-        super().parse_html_options()
-
-    def get_code_location (self):
-        return super().get_code_location()
-
-    def write_code_location (self):
-        super().write_code_location()
-
-    def write_code_unzip (self):
-        super().write_code_unzip()
-
-    def write_goto_project_folder(self):
-        super().write_goto_project_folder()
-
-    def write_pip_installs (self):
-        super().write_pip_installs()
-        
     def write_download_results (self):
         print ("KGV2 :: write_download_results ==> START")
         self.script_file_ptr.write ("# Download and place expected results\n")
@@ -61,12 +41,6 @@ class KGV2_Instance (instance.Instance):
 
     def write_code_run (self):
         print ("KGV2 :: write_code_run ==> START")
-        # runscript_file = self.id + ".sh"
-        # self.script_file_ptr.write("cp " + self.workdir + "/" + runscript_file + " ." + "\n")
-        # self.script_file_ptr.write("pwd; ls -alh;" + "\n")
-        # self.script_file_ptr.write("chmod +x ./" + runscript_file + "\n")
-        # self.script_file_ptr.write("echo \"TODO : Get INPUT and RESULTS\"" + "\n")
-        # self.script_file_ptr.write("./" + runscript_file + "\n")
         self.script_file_ptr.write ("# Run instruction\n")
         if self.metadata["parameters"]["run"]:
             self.script_file_ptr.write(self.metadata["parameters"]["run"] + "\n")
