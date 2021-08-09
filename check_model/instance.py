@@ -85,10 +85,8 @@ class Instance:
             exit(EXIT_FAILURE)
 
         # Metadata not empty
-        self.script_file_ptr = open ("run_me.sh", "w")
-        # f = open (WORKDIR + "/run_me.sh", "a")
+        self.script_file_ptr = open (work_dir + "/run_me.sh", "w")
         self.script_file_ptr.write("#!/bin/bash\n\n")
-        runscript_file = work_dir + self.id + ".sh"
         self.workdir = work_dir
         print ("create_script_file ==> END")
 
