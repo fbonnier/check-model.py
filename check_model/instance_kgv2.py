@@ -24,7 +24,7 @@ class KGV2_Instance (instance.Instance):
         # If 'parameters' does not exist, the model will not run as the run instruction is unknown
         if not self.metadata["parameters"]:
             instance.print_error ("No parameters specidied in the model, the run instruction is Unkown", "fail")
-            exit (EXIT_FAILURE)
+            exit (instance.EXIT_FAILURE)
         self.metadata["parameters"] = json.loads(self.metadata["parameters"])
         self.parse_html_options ()
         print ("KGV2 :: Get model instance metadata ==> END")
@@ -58,7 +58,7 @@ class KGV2_Instance (instance.Instance):
         else:
             instance.print_error ("No run script specified", "fail")
             self.script_file_ptr.close()
-            exit(EXIT_FAILURE)
+            exit(instance.EXIT_FAILURE)
         print ("KGV2 :: write_code_run ==> END")
 
     def close_script_file (self):
