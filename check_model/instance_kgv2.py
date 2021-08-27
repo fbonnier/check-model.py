@@ -19,6 +19,12 @@ class KGV2_Instance (instance.Instance):
         print ("KGV2:: Download Instance")
         print ("KGV2 :: Get model instance metadata ==> START")
         self.metadata = self.catalog.get_model_instance(instance_id=self.id)
+        
+        # Check if 'parameters' exist
+        # If 'parameters' does not exist, the model will not run as the run instruction is unknown
+        if not self.metadata["parameters"]:
+            print_error ("No parameters specidied in the model, the run instruction is Unkown", "fail")
+            exit (EXIT_FAILURE)
         self.metadata["parameters"] = json.loads(self.metadata["parameters"])
         self.parse_html_options ()
         print ("KGV2 :: Get model instance metadata ==> END")
