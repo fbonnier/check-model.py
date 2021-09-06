@@ -19,26 +19,27 @@ class KGV2_Instance (instance.Instance):
         print ("KGV2:: Download Instance")
         print ("KGV2 :: Get model instance metadata ==> START")
         
-        #Initialize metadata parameters
-        self.metadata["parameters"] = {}
-        self.metadata["parameters"]["run"] = ""
-        self.metadata["parameters"]["pip_installs"] = ""
-        self.metadata["parameters"]["inputs"] = {}
-        self.metadata["parameters"]["results"] = {}
-        
         self.metadata = self.catalog.get_model_instance(instance_id=self.id)
         
         # Check if 'parameters' exist
         # If 'parameters' does not exist, the model will not run as the run instruction is unknown
-        if not self.metadata["parameters"]:
+        if "parameters" not self.metadata:
             instance.print_error ("No parameters specidied in the model, the run instruction is Unkown", "fail")
             exit (instance.EXIT_FAILURE)
         self.metadata["parameters"] = json.loads(self.metadata["parameters"])
         
         # Check if 'run' instruction exists in 'parameters'
-        if not self.metadata["parameters"]:
+        if "run" not in self.metadata["parameters"]:
             instance.print_error ("The run instruction is Unkown", "fail")
             exit (instance.EXIT_FAILURE)
+        
+        #Initialize metadata parameters
+        if "pip_installs" not in self.metadata["parameters"]:
+            self.metadata["parameters"]["pip_installs"] = ""
+        if "inputs" not in self.metadata["parameters"]:
+            self.metadata["parameters"]["inputs"] = {}
+        if "results" not in self.metadata["parameters"]:
+            self.metadata["parameters"]["results"] = {}
         
         self.parse_html_options ()
         print ("KGV2 :: Get model instance metadata ==> END")
