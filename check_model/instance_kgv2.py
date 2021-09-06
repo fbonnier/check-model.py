@@ -18,6 +18,13 @@ class KGV2_Instance (instance.Instance):
     def download_instance_metadata (self):
         print ("KGV2:: Download Instance")
         print ("KGV2 :: Get model instance metadata ==> START")
+        
+        #Initialize metadata parameters
+        self.metadata["parameters"]["run"] = ""
+        self.metadata["parameters"]["pip_installs"] = ""
+        self.metadata["parameters"]["inputs"] = {}
+        self.metadata["parameters"]["results"] = {}
+        
         self.metadata = self.catalog.get_model_instance(instance_id=self.id)
         
         # Check if 'parameters' exist
