@@ -48,7 +48,7 @@ class Instance:
     workdir = ""
     watchdog_pid = None
 
-    metadata = None
+    metadata = dict()
     # Additional data in Metadata:
     ##  html_options
     ##  archive_name
