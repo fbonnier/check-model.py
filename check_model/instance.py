@@ -113,10 +113,8 @@ class Instance:
             self.script_file_ptr.write ("# Extracting the code\n")
             self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n\n")
         except ValueError as e:
-            print_error ("write_code_unzip", "fail")
+            print_error ("write_code_unzip", "continue")
             print (e)
-            self.script_file_ptr.close()
-            exit (EXIT_FAILURE)
         print ("write_code_unzip ==> END")
 
     def get_code_location (self):
