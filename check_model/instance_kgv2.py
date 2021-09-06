@@ -20,6 +20,7 @@ class KGV2_Instance (instance.Instance):
         print ("KGV2 :: Get model instance metadata ==> START")
         
         #Initialize metadata parameters
+        self.metadata["parameters"] = {}
         self.metadata["parameters"]["run"] = ""
         self.metadata["parameters"]["pip_installs"] = ""
         self.metadata["parameters"]["inputs"] = {}
