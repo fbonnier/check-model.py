@@ -34,6 +34,12 @@ class KGV2_Instance (instance.Instance):
             instance.print_error ("No parameters specidied in the model, the run instruction is Unkown", "fail")
             exit (instance.EXIT_FAILURE)
         self.metadata["parameters"] = json.loads(self.metadata["parameters"])
+        
+        # Check if 'run' instruction exists in 'parameters'
+        if not self.metadata["parameters"]:
+            instance.print_error ("The run instruction is Unkown", "fail")
+            exit (instance.EXIT_FAILURE)
+        
         self.parse_html_options ()
         print ("KGV2 :: Get model instance metadata ==> END")
 
