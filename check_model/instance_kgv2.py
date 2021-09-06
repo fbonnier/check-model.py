@@ -23,7 +23,7 @@ class KGV2_Instance (instance.Instance):
         
         # Check if 'parameters' exist
         # If 'parameters' does not exist, the model will not run as the run instruction is unknown
-        if "parameters" not self.metadata:
+        if "parameters" not in self.metadata:
             instance.print_error ("No parameters specidied in the model, the run instruction is Unkown", "fail")
             exit (instance.EXIT_FAILURE)
         self.metadata["parameters"] = json.loads(self.metadata["parameters"])
