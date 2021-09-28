@@ -101,7 +101,7 @@ class Instance:
 
         # Metadata not empty
         print ("WORKDIR  = " + work_dir)
-        self.script_file_ptr = open (work_dir + "/run_me.sh", "a")
+        self.script_file_ptr = open (work_dir + "/run_me.sh", "w")
         # f = open (WORKDIR + "/run_me.sh", "a")
         self.script_file_ptr.write("#!/bin/bash\n\n")
         runscript_file = work_dir + self.id + ".sh"
