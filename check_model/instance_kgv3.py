@@ -4,7 +4,7 @@ import requests
 import json
 # hbp-validation-framework
 from hbp_validation_framework import ModelCatalog
-import instance
+import check_model.instance as instance
 
 # KG-v3, KG-Core Python Interface
 from kg_core.oauth import SimpleToken
