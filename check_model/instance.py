@@ -59,12 +59,33 @@ class Instance:
     id = None
     catalog = None
     workdir = ""
+    watchdog_pid = None
 
-    metadata = None
+    metadata = dict()
     # Additional data in Metadata:
     ##  html_options
     ##  archive_name
     script_file_ptr = None
+
+    def get_watchdog (self):
+        # Get watchdog/watchmedo instructions
+        print ("get_watchdog ==> START")
+        print ("get_watchdog ==> END")
+        return ("watchmedo shell-command --patterns='*' --recursive --command='echo ${watch_src_path}' . & WATCHDOG_PID=$!\n")
+
+    def write_watchdog (self):
+        # Write watchdog/watchmedo instructions
+        print ("write_watchdog ==> START")
+        assert (self.script_file_ptr != None)
+        self.script_file_ptr.write(self.get_watchdog ())
+        print ("write_watchdog ==> END")
+
+    def write_watchdog_kill (self):
+        # Write instruction to kill Watchdog from PID
+        print ("write_watchdog_kill ==> START")
+        assert (self.script_file_ptr != None)
+        self.script_file_ptr.write("kill -15 $WATCHDOG_PID\n\n")
+        print ("write_watchdog_kill ==> END")
 
 
 
@@ -79,8 +100,8 @@ class Instance:
             exit(EXIT_FAILURE)
 
         # Metadata not empty
-        print ("WORKDIR  = " + workdir)
-        self.script_file_ptr = open (workdir + "/run_me.sh", "a")
+        print ("WORKDIR  = " + work_dir)
+        self.script_file_ptr = open (work_dir + "/run_me.sh", "a")
         # f = open (WORKDIR + "/run_me.sh", "a")
         self.script_file_ptr.write("#!/bin/bash\n\n")
         runscript_file = work_dir + self.id + ".sh"
@@ -235,10 +256,10 @@ class Instance:
             # filename = var_download_command.split("/")
             self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
         except ValueError as e:
-            print_error ("write_code_unzip", "fail")
-            print (e)
-            self.script_file_ptr.close()
-            exit (EXIT_FAILURE)
+            print_error ("write_code_unzip :: " + self.metadata["archive_name"] + " is not a recognized archive format", "fail")
+            # print (e)
+            # self.script_file_ptr.close()
+            # exit (EXIT_FAILURE)
         print ("write_code_unzip ==> END")
 
 
