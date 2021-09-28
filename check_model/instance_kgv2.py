@@ -18,21 +18,21 @@ class KGV2_Instance (instance.Instance):
     def download_instance_metadata (self):
         print ("KGV2:: Download Instance")
         print ("KGV2 :: Get model instance metadata ==> START")
-        
+
         self.metadata = self.catalog.get_model_instance(instance_id=self.id)
-        
+
         # Check if 'parameters' exist
         # If 'parameters' does not exist, the model will not run as the run instruction is unknown
         if "parameters" not in self.metadata or not self.metadata["parameters"]:
             instance.print_error ("No parameters specidied in the model, the run instruction is Unkown", "fail")
             exit (instance.EXIT_FAILURE)
         self.metadata["parameters"] = json.loads(self.metadata["parameters"])
-        
+
         # Check if 'run' instruction exists in 'parameters'
         if "run" not in self.metadata["parameters"]:
             instance.print_error ("The run instruction is Unkown", "fail")
             exit (instance.EXIT_FAILURE)
-        
+
         #Initialize metadata parameters
         if "pip_installs" not in self.metadata["parameters"]:
             self.metadata["parameters"]["pip_installs"] = ""
@@ -40,18 +40,22 @@ class KGV2_Instance (instance.Instance):
             self.metadata["parameters"]["inputs"] = {}
         if "results" not in self.metadata["parameters"]:
             self.metadata["parameters"]["results"] = {}
-        
+
         self.parse_html_options ()
         print ("KGV2 :: Get model instance metadata ==> END")
 
     def write_download_results (self):
         print ("KGV2 :: write_download_results ==> START")
         self.script_file_ptr.write ("# Download and place expected results\n")
+        result_list = open (self.workdir + "/list_results.txt", "w")
         if self.metadata["parameters"]["results"]:
             for iresult in self.metadata["parameters"]["results"]:
-                if iresult["url"] and iresult["destination"]:
-                    self.script_file_ptr.write ("wget -N " + iresult["url"] + " --directory-prefix=" + iresult["destination"] + "\n")
+                result_list.write (iresult.split("/")[-1])
+                result_list.write("\n")
+                print (iresult.split("/")[-1])
+                self.script_file_ptr.write ("wget -N " + iresult + " --directory-prefix=" + self.workdir + "/expected_results/" + "\n")
         self.script_file_ptr.write ("\n")
+        result_list.close()
         print ("KGV2 :: write_download_results ==> END")
 
     def write_download_inputs (self):
