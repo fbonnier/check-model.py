@@ -13,15 +13,15 @@ from kg_core.models import Stage
 from kg_core.models import Pagination
 
 
-class KGV3_Instance (Instance):
+class KGV3_Instance (instance.Instance):
 
     def download_instance_metadata (self):
-        print ("KGV2:: Download Instance")
-        print ("KGV2 :: Get model instance metadata ==> START")
+        print ("KGV3:: Download Instance")
+        print ("KGV3 :: Get model instance metadata ==> START")
         self.metadata = self.catalog.get_model_instance(instance_id=self.id)
         self.metadata["parameters"] = json.loads(self.metadata["parameters"])
         self.parse_html_options ()
-        print ("KGV2 :: Get model instance metadata ==> END")
+        print ("KGV3 :: Get model instance metadata ==> END")
 
     def create_script_file (self, work_dir):
         super().create_script_file(work_dir)
@@ -82,6 +82,7 @@ class KGV3_Instance (Instance):
         token_handler = SimpleToken(token)
         return KGv3(host="core.kg.ebrains.eu", token_handler=token_handler)
 
-    def __init__ (self, new_id):
-        super().__init__ (self, new_id)
-        self.catalog = connect_to_service()
+    def __init__ (self, new_id, token):
+        super().__init__ (new_id)
+        self.catalog = self.connect_to_service(token)
+        self.download_instance_metadata ()
