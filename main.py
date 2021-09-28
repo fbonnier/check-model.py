@@ -10,7 +10,7 @@ if __name__ == "__main__":
     model_id = os.environ["HBP_INSTANCE_ID"] # SpiNNCer
 
     ## Define a working directory
-    work_dir = "."
+    work_dir = os.environ.get("WORKDIR", os.environ["HOME"])
     auth_token = os.environ.get("HBP_AUTH_TOKEN", None)
     auth_user = os.environ["HBP_USER"]
     auth_pass = os.environ["HBP_PASSWORD"]
