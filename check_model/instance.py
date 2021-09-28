@@ -28,6 +28,19 @@ main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source":
 def print_error (error_msg, exit_type=None):
     print ((("Error :: ") if exit_type!="success" else "Message :: ") + str (error_msg) + ((" " + error_msgs[exit_type]) if exit_type!=None else ""))
 
+#def get_password ():
+
+#    cmd = "pass show HBP/model-catalog"
+#    pswd = spur.LocalShell().run(cmd.split(), encoding="utf-8")
+#    toreturn = pswd.output.strip()
+#    if (toreturn.startswith("Error:")):
+#        print_error (toreturn + "\nTry to log with HBP_PASS environment variable.", "continue")
+#        toreturn = os.environ["HBP_PASS"]
+#        if not toreturn :
+#            print_error ("Error :: HBP_PASS must be set.", "fail")
+#            exit(EXIT_FAILURE)
+#    return toreturn
+
 
 class Instance:
     def get_id (self):
@@ -46,33 +59,14 @@ class Instance:
     id = None
     catalog = None
     workdir = ""
-    watchdog_pid = None
 
-    metadata = dict()
+    metadata = None
     # Additional data in Metadata:
     ##  html_options
     ##  archive_name
     script_file_ptr = None
 
-    def get_watchdog (self):
-        # Get watchdog/watchmedo instructions
-        print ("get_watchdog ==> START")
-        print ("get_watchdog ==> END")
-        return ("watchmedo shell-command --patterns='*' --recursive --command='echo ${watch_src_path}' . & WATCHDOG_PID=$!\n")
 
-    def write_watchdog (self):
-        # Write watchdog/watchmedo instructions
-        print ("write_watchdog ==> START")
-        assert (self.script_file_ptr != None)
-        self.script_file_ptr.write(self.get_watchdog ())
-        print ("write_watchdog ==> END")
-        
-    def write_watchdog_kill (self):
-        # Write instruction to kill Watchdog from PID
-        print ("write_watchdog_kill ==> START")
-        assert (self.script_file_ptr != None)
-        self.script_file_ptr.write("kill -15 $WATCHDOG_PID\n\n")
-        print ("write_watchdog_kill ==> END")
 
     def download_instance_metadata (self):
         pass
@@ -85,8 +79,11 @@ class Instance:
             exit(EXIT_FAILURE)
 
         # Metadata not empty
-        self.script_file_ptr = open (work_dir + "/run_me.sh", "w")
+        print ("WORKDIR  = " + workdir)
+        self.script_file_ptr = open (workdir + "/run_me.sh", "a")
+        # f = open (WORKDIR + "/run_me.sh", "a")
         self.script_file_ptr.write("#!/bin/bash\n\n")
+        runscript_file = work_dir + self.id + ".sh"
         self.workdir = work_dir
         print ("create_script_file ==> END")
 
@@ -103,19 +100,6 @@ class Instance:
 
         self.metadata["html_options"] = html_options
         print ("parse_html_options ==> END")
-
-    def write_code_unzip (self):
-        print ("write_code_unzip ==> START")
-        is_archive = [self.metadata["archive_name"].endswith(format) for format in archive_format]
-        try:
-            idx = is_archive.index(True)
-            # filename = var_download_command.split("/")
-            self.script_file_ptr.write ("# Extracting the code\n")
-            self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n\n")
-        except ValueError as e:
-            print_error ("write_code_unzip", "continue")
-            print (e)
-        print ("write_code_unzip ==> END")
 
     def get_code_location (self):
         print ("get_code_location ==> START")
@@ -243,6 +227,21 @@ class Instance:
         self.script_file_ptr.close()
         exit (EXIT_FAILURE)
 
+    def write_code_unzip (self):
+        print ("write_code_unzip ==> START")
+        is_archive = [self.metadata["archive_name"].endswith(format) for format in archive_format]
+        try:
+            idx = is_archive.index(True)
+            # filename = var_download_command.split("/")
+            self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
+        except ValueError as e:
+            print_error ("write_code_unzip", "fail")
+            print (e)
+            self.script_file_ptr.close()
+            exit (EXIT_FAILURE)
+        print ("write_code_unzip ==> END")
+
+
     def write_goto_project_folder(self):
         print ("write_goto_project_folder ==> START")
         # CD to project base folder
@@ -260,7 +259,7 @@ class Instance:
             if self.metadata["parameters"]["pip_installs"]:
                 print ("Installing additional PIP packages")
                 for ipackage in self.metadata["parameters"]["pip_installs"]:
-                    self.script_file_ptr.write ("pip3 install -e " + ipackage + "\n")
+                    self.script_file_ptr.write ("pip3 install " + ipackage + "\n")
                 self.script_file_ptr.write ("\n")
             else:
                 print ("No additional PIP package to install")
