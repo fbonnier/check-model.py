@@ -2,6 +2,7 @@ import os
 
 import requests
 import json
+import hashlib
 
 #HBP-Validation-Framework
 from hbp_validation_framework import ModelCatalog
@@ -46,15 +47,22 @@ class KGV2_Instance (instance.Instance):
 
     def write_download_results (self):
         print ("KGV2 :: write_download_results ==> START")
-        self.script_file_ptr.write ("# Download and place expected results\n")
-        result_list = open (self.workdir + "/list_results.txt", "w")
-        if self.metadata["parameters"]["results"]:
-            for iresult in self.metadata["parameters"]["results"]:
-                result_list.write (iresult.split("/")[-1])
-                result_list.write("\n")
-                print (iresult.split("/")[-1])
-                self.script_file_ptr.write ("wget -N " + iresult + " --directory-prefix=" + self.workdir + "/expected_results/" + "\n")
-        self.script_file_ptr.write ("\n")
+        self.script_file_ptr.write ("# Download and place expected results in WORKDIR/expected_results/\n")
+        self.script_file_ptr.write ("mkdir " + self.workdir + "expected_results/\n")
+        with open (self.workdir + "/list_results.txt", "w") as result_list:
+            result_data = []
+            if self.metadata["parameters"]["results"]:
+                for iresult in self.metadata["parameters"]["results"]:
+                    # print ("I-Result filename : " + str(iresult.split("/")[-1]))
+                    result_hash = hashlib.md5(b'iresult').hexdigest()
+                    result_data.append({"url": iresult, "hash": result_hash})
+                    # result_list.write (iresult.split("/")[-1])
+                    # result_list.write("\n")
+                    # print ("I-Result hash : " + str(result_hash.digest()) + "\n")
+                    # self.script_file_ptr.write ("wget -N " + iresult + " -O " + self.workdir + "expected_results/" + iresult.replace("/", ".") + "\n")
+                    self.script_file_ptr.write ("wget -N " + iresult + " -O " + self.workdir + "expected_results/" + str(result_hash) + "\n")
+            self.script_file_ptr.write ("\n")
+            json.dump(result_data, result_list)
         result_list.close()
         print ("KGV2 :: write_download_results ==> END")
 
@@ -64,7 +72,7 @@ class KGV2_Instance (instance.Instance):
         if self.metadata["parameters"]["inputs"]:
             for iinput in self.metadata["parameters"]["inputs"]:
                 if iinput["url"] and iinput["destination"]:
-                    self.script_file_ptr.write ("wget -N " + iinput["url"] + " --directory-prefix=" + iinput["destination"] + "\n")
+                    self.script_file_ptr.write ("wget -N " + iinput["url"] + " --directory-prefix=./" + iinput["destination"] + "\n")
 
         self.script_file_ptr.write ("\n")
         print ("KGV2 :: write_download_inputs ==> END")
