@@ -53,16 +53,12 @@ class KGV2_Instance (instance.Instance):
             result_data = []
             if self.metadata["parameters"]["results"]:
                 for iresult in self.metadata["parameters"]["results"]:
-                    # print ("I-Result filename : " + str(iresult.split("/")[-1]))
-                    result_hash = hashlib.md5(b'iresult').hexdigest()
-                    result_data.append({"url": iresult, "hash": result_hash})
-                    # result_list.write (iresult.split("/")[-1])
-                    # result_list.write("\n")
-                    # print ("I-Result hash : " + str(result_hash.digest()) + "\n")
-                    # self.script_file_ptr.write ("wget -N " + iresult + " -O " + self.workdir + "expected_results/" + iresult.replace("/", ".") + "\n")
+                    result_hash = hashlib.md5(bytes(iresult, encoding='utf-8')).hexdigest()
+                    result_list.write (iresult)
+                    result_list.write("\n")
                     self.script_file_ptr.write ("wget -N " + iresult + " -O " + self.workdir + "expected_results/" + str(result_hash) + "\n")
             self.script_file_ptr.write ("\n")
-            json.dump(result_data, result_list)
+
         result_list.close()
         print ("KGV2 :: write_download_results ==> END")
 
@@ -93,12 +89,10 @@ class KGV2_Instance (instance.Instance):
 
     def connect_to_service (self, username = None, password = None, token = None):
         # Connect to HBP Model Catalog
-        # return ModelCatalog(os.environ["HBP_USER"], get_password())
         return ModelCatalog(username=username, password=password, token=token)
-        # return ModelCatalog()
+
 
     def __init__ (self, new_id, username=None, password=None, token=None):
         super().__init__ (new_id)
         self.catalog = self.connect_to_service(username=username, password=password, token=token)
-        # os.environ["HBP_AUTH_TOKEN"]=self.catalog.auth.token
         self.download_instance_metadata ()
