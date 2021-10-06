@@ -15,6 +15,9 @@ from kg_core.models import Pagination
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 
+# PyGitub
+from github import Github
+
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 error_msgs = {"continue":"\n----- Continue", "success":"\n----- Exit SUCCESS", "fail":"\n----- Exit FAIL"}
@@ -61,10 +64,16 @@ class Instance:
     workdir = ""
     watchdog_pid = None
 
+    ### Data in Metadata:
+    ## run = str()
+    ## source = []
+    ## inputs = []
+    ## outputs = []
+    ## version = str()
+    ##  html_options = []
+    ##  archive_name = []
     metadata = dict()
-    # Additional data in Metadata:
-    ##  html_options
-    ##  archive_name
+
     script_file_ptr = None
 
     def get_watchdog (self):
@@ -161,8 +170,26 @@ class Instance:
                         print ("get_code_location ==> END")
                         return cmd_to_return
 
-                print("Try to get release archive from version number ... FAIL")
-                print_error (self.metadata["source"] + " does not provide archive release, try to clone GIT project.", "continue")
+                print("Get release archive from version number ... FAIL")
+                print_error (self.metadata["source"] + " does not provide archive release, try to get commit-id from version number.", "continue")
+
+                if os.environ["GIT_TOKEN"]:
+                    gitbase = Github(os.environ["GIT_TOKEN"])
+                    try:
+                        repo = gitbase.get_repo(self.metadata["source"])
+                        commit = repo.get_commit(sha=self.metadata["version"])
+                        cmd_to_return = "git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id\
+                        + "\n cd " + self.workdir + "/" + self.id\
+                        + "\n git checkout " + self.metadata["version"]\
+                        + "\n cd " + self.workdir
+                        return cmd_to_return
+
+                    except Exception as e:
+                        print (e)
+                        print_error ("Get commited version ... FAIL. Try to clone source code", "continue")
+                else :
+                    print_error ("The version number does not correspond to a commit-ID, try to clone the project", "continue")
+
                 cmd_to_return = "git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id
                 print ("get_code_location ==> END")
                 self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
@@ -228,7 +255,11 @@ class Instance:
                         return
 
                 print("Try to get release archive from version number ... FAIL")
-                print_error (self.metadata["source"] + " does not provide archive release, try to clone GIT project.", "continue")
+                print_error (self.metadata["source"] + " does not provide archive release, try to get GIT commit tag from version number.", "continue")
+
+                ## Get commit from version number
+                ## The revision branch should be master
+                repo.commit('master')
                 self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id + "\n")
                 print ("write_code_location ==> END")
                 self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
