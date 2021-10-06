@@ -14,7 +14,7 @@ from kg_core.models import Pagination
 
 # Source server from which the ALREADY KG-v3 instances are downloaded
 # Default is Official KG-v3 server
-SOURCE_SERVER = "core.kg.ebrains.eu"
+SOURCE_SERVER = "https://core.kg.ebrains.eu"
 
 
 class KGV3_Instance (instance.Instance):
