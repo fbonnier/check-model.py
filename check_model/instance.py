@@ -15,21 +15,17 @@ from kg_core.models import Pagination
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 
-# PyGitub
-from github import Github
+# Gitub
+import check_model.github_repo as Github
 
-EXIT_SUCCESS = 0
-EXIT_FAILURE = 1
-error_msgs = {"continue":"\n----- Continue", "success":"\n----- Exit SUCCESS", "fail":"\n----- Exit FAIL"}
-
-archive_format = [".tar.gz", ".tar", ".zip", ".rar"]
+# Errors
+import check_model.errors as errors
+import check_model.archive as archive
 main_repo = {"github": {"pattern": "https://github.com", "tar_url":"", "source": "", "file": "git-download.txt", "download_command": "git clone "},
              "cscs": {"pattern": "https://object.cscs.ch", "tar_url":"", "source": "", "file": "cscs-download.txt", "download_command": "wget -N "},
              "testing": {"pattern": "http://example.com", "tar_url":"", "source": "", "file": "no-download.txt", "download_command": ""},
              }
 
-def print_error (error_msg, exit_type=None):
-    print ((("Error :: ") if exit_type!="success" else "Message :: ") + str (error_msg) + ((" " + error_msgs[exit_type]) if exit_type!=None else ""))
 
 #def get_password ():
 
@@ -37,11 +33,11 @@ def print_error (error_msg, exit_type=None):
 #    pswd = spur.LocalShell().run(cmd.split(), encoding="utf-8")
 #    toreturn = pswd.output.strip()
 #    if (toreturn.startswith("Error:")):
-#        print_error (toreturn + "\nTry to log with HBP_PASS environment variable.", "continue")
+#        errors.print_error (toreturn + "\nTry to log with HBP_PASS environment variable.", "continue")
 #        toreturn = os.environ["HBP_PASS"]
 #        if not toreturn :
-#            print_error ("Error :: HBP_PASS must be set.", "fail")
-#            exit(EXIT_FAILURE)
+#            errors.print_error ("Error :: HBP_PASS must be set.", "fail")
+#            exit(errors.EXIT_FAILURE)
 #    return toreturn
 
 
@@ -105,8 +101,8 @@ class Instance:
         print ("create_script_file ==> START")
         # Error if metadata empty
         if (not self.metadata):
-            print_error ("create_script_file :: meta_data empty", exit_type="fail")
-            exit(EXIT_FAILURE)
+            errors.print_error ("create_script_file :: meta_data empty", exit_type="fail")
+            exit(errors.EXIT_FAILURE)
 
         # Metadata not empty
         print ("WORKDIR  = " + work_dir)
@@ -136,7 +132,7 @@ class Instance:
         cmd_to_return = ""
 
         # If source is archive, WGET archive file
-        is_archive = [self.metadata["source"].endswith(format) for format in archive_format]
+        is_archive = [self.metadata["source"].endswith(format) for format in archive.archive_format]
         try:
             # Source is an archive
             idx = is_archive.index(True)
@@ -147,76 +143,59 @@ class Instance:
                 print ("get_code_location ==> END")
                 return cmd_to_return
             else :
-                print_error (self.metadata["source"] + "' Response status = " + str(response.status_code), "fail")
-                exit(EXIT_FAILURE)
+                errors.print_error (self.metadata["source"] + "' Response status = " + str(response.status_code), "fail")
+                exit(errors.EXIT_FAILURE)
         except ValueError:
             # Source is not archive
-            print_error (self.metadata["source"] + " is not an archive. Let's try something else ...", "continue")
+            errors.print_error (self.metadata["source"] + " is not an archive. Let's try something else ...", "continue")
 
         # If source is git repo
         if (self.metadata["source"].startswith(main_repo["github"]["pattern"])):
             # If model has version number, try to get archive file of version
             print ("Source is GIT repository")
             if (self.metadata["version"]):
+                cmd_to_return = Github.github_release (self.id, self.workdir, self.metadata)
+                if cmd_to_return:
+                    return cmd_to_return
                 # For all archive format, ping the file
                 print("Try to get release archive from version number ...")
-                for format in archive_format:
-                    tar_url = self.metadata["source"] + "/archive/v" + self.metadata["version"] + format
-                    response = requests.get(tar_url, stream=True)
-                    if(response.ok):
-                        cmd_to_return = "wget -N --directory-prefix=" + self.workdir + " " + tar_url
-                        self.metadata["archive_name"] = tar_url.split("/")[-1]
-                        print("Try to get release archive from version number ... SUCCESS")
-                        print ("get_code_location ==> END")
-                        return cmd_to_return
+
 
                 print("Get release archive from version number ... FAIL")
-                print_error (self.metadata["source"] + " does not provide archive release, try to get commit-id from version number.", "continue")
+                errors.print_error (self.metadata["source"] + " does not provide archive release, try to get commit-id from version number.", "continue")
 
-                if os.environ["GIT_TOKEN"]:
-                    gitbase = Github(os.environ["GIT_TOKEN"])
-                    try:
-                        repo = gitbase.get_repo(self.metadata["source"])
-                        commit = repo.get_commit(sha=self.metadata["version"])
-                        cmd_to_return = "git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id\
-                        + "\n cd " + self.workdir + "/" + self.id\
-                        + "\n git checkout " + self.metadata["version"]\
-                        + "\n cd " + self.workdir
-                        return cmd_to_return
 
-                    except Exception as e:
-                        print (e)
-                        print_error ("Get commited version ... FAIL. Try to clone source code", "continue")
-                else :
-                    print_error ("The version number does not correspond to a commit-ID, try to clone the project", "continue")
+                # Check Github commit ID hash
+                cmd_to_return =  Github.github_commit(self.id, self.workdir, self.metadata )
+                if cmd_to_return:
+                    return cmd_to_return
 
-                cmd_to_return = "git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id
+                # cmd_to_return = "git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id
                 print ("get_code_location ==> END")
-                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
-                return cmd_to_return
+                # self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
+                # return cmd_to_return
+                return Github.github_clone (self.id, self.workdir, self.metadata)
             else :
                 # Git clone project
-                print_error (self.metadata["source"] + " does not have version number, try to clone GIT project.", "continue")
-                cmd_to_return = "git clone " + self.metadata["source"] + " " + self.workdir + "/" + self.id
-                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
+                errors.print_error (self.metadata["source"] + " does not have version number, try to clone GIT project.", "continue")
                 print ("get_code_location ==> END")
-                return cmd_to_return
+                return Github.github_clone (self.id, self.workdir, self.metadata)
 
         # Error :: the source does not exists or source pattern not taken into account
-        print_error (self.metadata["source"] + " (" + self.metadata["version"] + ")' does not exist or service not available.", "fail")
-        exit (EXIT_FAILURE)
+        errors.print_error (self.metadata["source"] + " (" + self.metadata["version"] + ")' does not exist or service not available.", "fail")
+        exit (errors.EXIT_FAILURE)
 
     def write_code_location (self):
         print ("write_code_location ==> START")
         # If file pointer is Null, exit fail
         if not self.script_file_ptr:
-            print_error("write_code_location:: Null file pointer", exit_type="fail")
+            errors.print_error("write_code_location:: Null file pointer", exit_type="fail")
 
         self.script_file_ptr.write ("# Download Instance Code\n")
 
         # Else get code location
         # If source is archive, WGET archive file
-        is_archive = [self.metadata["source"].endswith(format) for format in archive_format]
+        is_archive = archive.is_archive(self.metadata["source"])
         try:
             # Source is an archive
             idx = is_archive.index(True)
@@ -228,12 +207,12 @@ class Instance:
                 self.script_file_ptr.write ("\n")
                 return
             else :
-                print_error (self.metadata["source"] + "' Response status = " + str(response.status_code), "fail")
+                errors.print_error (self.metadata["source"] + "' Response status = " + str(response.status_code), "fail")
                 self.script_file_ptr.close()
-                exit(EXIT_FAILURE)
+                exit(errors.EXIT_FAILURE)
         except ValueError:
             # Source is not archive
-            print_error (self.metadata["source"] + " is not an archive. Let's try something else ...", "continue")
+            errors.print_error (self.metadata["source"] + " is not an archive. Let's try something else ...", "continue")
 
 
         # If source is git repo
@@ -243,7 +222,7 @@ class Instance:
             if (self.metadata["version"]):
                 # For all archive format, ping the file
                 print("Try to get release archive from version number ...")
-                for format in archive_format:
+                for format in archive.archive_format:
                     tar_url = self.metadata["source"] + "/archive/v" + self.metadata["version"] + format
                     response = requests.get(tar_url, stream=True)
                     if(response.ok):
@@ -255,7 +234,7 @@ class Instance:
                         return
 
                 print("Try to get release archive from version number ... FAIL")
-                print_error (self.metadata["source"] + " does not provide archive release, try to get GIT commit tag from version number.", "continue")
+                errors.print_error (self.metadata["source"] + " does not provide archive release, try to get GIT commit tag from version number.", "continue")
 
                 ## Get commit from version number
                 ## The revision branch should be master
@@ -267,7 +246,7 @@ class Instance:
                 return
             else :
                 # Git clone project
-                print_error (self.metadata["source"] + " does not have version number, try to clone GIT project.", "continue")
+                errors.print_error (self.metadata["source"] + " does not have version number, try to clone GIT project.", "continue")
                 self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir + "/" + self.id + "\n")
                 self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
                 print ("write_code_location ==> END")
@@ -275,22 +254,22 @@ class Instance:
                 return
 
         # Error :: the source does not exists or source pattern not taken into account
-        print_error (self.metadata["source"] + " (" + self.metadata["version"] + ")' does not exist or service not available.", "fail")
+        errors.print_error (self.metadata["source"] + " (" + self.metadata["version"] + ")' does not exist or service not available.", "fail")
         self.script_file_ptr.close()
-        exit (EXIT_FAILURE)
+        exit (errors.EXIT_FAILURE)
 
     def write_code_unzip (self):
         print ("write_code_unzip ==> START")
-        is_archive = [self.metadata["archive_name"].endswith(format) for format in archive_format]
+        is_archive = [self.metadata["archive_name"].endswith(format) for format in archive.archive_format]
         try:
             idx = is_archive.index(True)
             # filename = var_download_command.split("/")
             self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
         except ValueError as e:
-            print_error ("write_code_unzip :: " + self.metadata["archive_name"] + " is not a recognized archive format", "fail")
+            errors.print_error ("write_code_unzip :: " + self.metadata["archive_name"] + " is not a recognized archive format", "fail")
             # print (e)
             # self.script_file_ptr.close()
-            # exit (EXIT_FAILURE)
+            # exit (errors.EXIT_FAILURE)
         print ("write_code_unzip ==> END")
 
 
@@ -317,10 +296,10 @@ class Instance:
                 print ("No additional PIP package to install")
                 self.script_file_ptr.write ("# No additional packages to install\n\n")
         except ValueError as e:
-            print_error ("write_pip_installs", "fail")
+            errors.print_error ("write_pip_installs", "fail")
             print (e)
             self.script_file_ptr.close()
-            exit (EXIT_FAILURE)
+            exit (errors.EXIT_FAILURE)
         print ("write_pip_installs ==> END")
 
     def close_script_file (self):
