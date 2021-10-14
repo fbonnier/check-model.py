@@ -132,10 +132,10 @@ class Instance:
         cmd_to_return = ""
 
         # If source is archive, WGET archive file
-        is_archive = [self.metadata["source"].endswith(format) for format in archive.archive_format]
+        # is_archive = [self.metadata["source"].endswith(format) for format in archive.archive_format]
         try:
             # Source is an archive
-            idx = is_archive.index(True)
+            # idx = is_archive.index(True)
             response = requests.get(self.metadata["source"], stream=True)
             if (response.ok):
                 cmd_to_return = "wget -N --directory-prefix=" + self.workdir + " " + self.metadata["source"]
@@ -195,10 +195,10 @@ class Instance:
 
         # Else get code location
         # If source is archive, WGET archive file
-        is_archive = archive.is_archive(self.metadata["source"])
+        # idx_archive = archive.is_archive(self.metadata["source"])
         try:
             # Source is an archive
-            idx = is_archive.index(True)
+            # idx = is_archive.index(True)
             response = requests.get(self.metadata["source"], stream=True)
             if (response.ok):
                 self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + self.metadata["source"] + "\n")
@@ -260,9 +260,9 @@ class Instance:
 
     def write_code_unzip (self):
         print ("write_code_unzip ==> START")
-        is_archive = [self.metadata["archive_name"].endswith(format) for format in archive.archive_format]
+        # is_archive = [self.metadata["archive_name"].endswith(format) for format in archive.archive_format]
         try:
-            idx = is_archive.index(True)
+            # idx = is_archive.index(True)
             # filename = var_download_command.split("/")
             self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
         except ValueError as e:
@@ -290,7 +290,7 @@ class Instance:
             if self.metadata["parameters"]["pip_installs"]:
                 print ("Installing additional PIP packages")
                 for ipackage in self.metadata["parameters"]["pip_installs"]:
-                    self.script_file_ptr.write ("pip3 install " + ipackage + "\n")
+                    self.script_file_ptr.write ("pip3 install -e " + ipackage + "\n")
                 self.script_file_ptr.write ("\n")
             else:
                 print ("No additional PIP package to install")
@@ -301,6 +301,7 @@ class Instance:
             self.script_file_ptr.close()
             exit (errors.EXIT_FAILURE)
         print ("write_pip_installs ==> END")
+        
 
     def close_script_file (self):
         print ("close_script_file ==> START")
