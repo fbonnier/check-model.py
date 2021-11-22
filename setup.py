@@ -7,13 +7,15 @@ install_requires = [
     "kg-core",
     "argh",
     "watchdog",
+    "pygit",
+    "pygithub"
 ]
 
 setup(
     name='check-model',
     version='1.0.0',
     packages=find_packages(),
-    url='https://github.com/fbonnier/check-model.py.git',
+    url='https://github.com/fbonnier/check_model.git',
     license="CeCILL",
     author='Florent Bonnier',
     author_email='florent.bonnier@cnrs.fr',

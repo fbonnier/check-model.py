@@ -34,8 +34,8 @@ if __name__ == "__main__":
     model_instance.write_code_location()
     model_instance.write_code_unzip ()
     model_instance.write_goto_project_folder()
-    model_instance.write_pip_installs()
     model_instance.write_download_inputs()
+    model_instance.write_pip_installs()
     model_instance.write_download_results()
 
     model_instance.write_watchdog()

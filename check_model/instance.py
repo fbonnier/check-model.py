@@ -61,9 +61,9 @@ class Instance:
     watchdog_pid = None
 
     ### Data in Metadata:
-    ## run = str()
-    ## source = []
-    ## inputs = []
+    ## run = str() todo [str()]
+    ## source = [] todo: [{"url": str(), "archive name":str()}, ...]
+    ## inputs = [] todo: [{"url": str(), "destination": str()}]
     ## outputs = []
     ## version = str()
     ##  html_options = []
@@ -301,7 +301,7 @@ class Instance:
             self.script_file_ptr.close()
             exit (errors.EXIT_FAILURE)
         print ("write_pip_installs ==> END")
-        
+
 
     def close_script_file (self):
         print ("close_script_file ==> START")
