@@ -76,7 +76,7 @@ class Instance:
         # Get watchdog/watchmedo instructions
         print ("get_watchdog ==> START")
         print ("get_watchdog ==> END")
-        return ("watchmedo shell-command --patterns='*' --recursive --command='echo ${watch_src_path}' . & WATCHDOG_PID=$!\n")
+        return ("watchmedo shell-command --command='echo \"${watch_src_path} ${watch_dest_path}\" >> ${WORKDIR}/watchdog_log.txt' --patterns='*' --ignore-patterns='watchdog_log.txt' --ignore-directories --recursive ${WORKDIR} & WATCHDOG_PID=$!;\n")
 
     def write_watchdog (self):
         # Write watchdog/watchmedo instructions
