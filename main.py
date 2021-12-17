@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Generate HBP model instance runscript from instance ID or metadata JSON file")
 
-    parser.add_argument("--id", type=str, metavar="Model Instance ID", nargs=1, dest="id", default=os.environ["HBP_INSTANCE_ID"],\
+    parser.add_argument("--id", type=str, metavar="Model Instance ID", nargs=1, dest="id", default=os.environ.get(["HBP_INSTANCE_ID"], ""),\
     help="ID of the Instance to download")
 
     parser.add_argument("--token", type=str, metavar="Authentification Token", nargs=1, dest="token", default=os.environ.get("HBP_AUTH_TOKEN", None),\
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("--json", type=argparse.FileType('r'), metavar="JSON Metadata file", nargs=1, dest="json", default="",\
     help="JSON File that contains Metadata of the HBP model to run")
 
-    parser.add_argument("--workdir", type=str, metavar="Working Directory", nargs=1, dest="workdir", default="./",\
+    parser.add_argument("--workdir", type=str, metavar="Working Directory", nargs=1, dest="workdir", default=os.environ.get(["WORKDIR"], "./"),\
     help="Working directory")
 
     parser.add_argument("--kg", type=int, metavar="KG Version", nargs=1, dest="kg", default=int(os.environ.get("KG_VERSION", 2)),\
