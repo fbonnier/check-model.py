@@ -1,31 +1,63 @@
 import os
+import sys
+import argparse
 from check_model import instance_kgv2 as instance2
 from check_model import instance_kgv3 as instance3
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description="Generate HBP model instance runscript from instance ID or metadata JSON file")
+
+    parser.add_argument("--id", type=str, metavar="Model Instance ID", nargs=1, dest="id", default=os.environ["HBP_INSTANCE_ID"],\
+    help="ID of the Instance to download")
+
+    parser.add_argument("--token", type=str, metavar="Authentification Token", nargs=1, dest="token", default=os.environ.get("HBP_AUTH_TOKEN", None),\
+    help="Authentification Token used to log to EBRAINS")
+
+    parser.add_argument("--json", type=argparse.FileType('r'), metavar="JSON Metadata file", nargs=1, dest="json", default="",\
+    help="JSON File that contains Metadata of the HBP model to run")
+
+    parser.add_argument("--workdir", type=str, metavar="Working Directory", nargs=1, dest="workdir", default="./",\
+    help="Working directory")
+
+    parser.add_argument("--kg", type=int, metavar="KG Version", nargs=1, dest="kg", default=int(os.environ.get("KG_VERSION", 2)),\
+    help="Version number of Knowledge Graph to use")
+
+    args = parser.parse_args()
+
+
     # Test new KG-v2 instantiation
 
     ## Define a model to try
-    model_id = os.environ["HBP_INSTANCE_ID"] # SpiNNCer
+    model_id = args.id[0]
+    if not model_id:
+        print (file=sys.stderr, "Error: Instance ID not recognized")
+        exit(1)
 
     ## Define a working directory
-    work_dir = os.environ.get("WORKDIR", os.environ["HOME"])
-    auth_token = os.environ.get("HBP_AUTH_TOKEN", None)
-    auth_user = os.environ["HBP_USER"]
-    auth_pass = os.environ["HBP_PASSWORD"]
-    kg_version = int(os.environ["KG_VERSION"])
+    work_dir = args.workdir[0]
+
+    # auth_token = os.environ.get("HBP_AUTH_TOKEN", None)
+    # if args.token:
+    auth_token = args.token[0]
+    if not auth_token:
+        print (file=sys.stderr, "Error: Authentification Token not recognized")
+        exit(1)
+
+    # auth_user = os.environ["HBP_USER"]
+    # auth_pass = os.environ["HBP_PASSWORD"]
+
+    kg_version = args.kg[0]
     if kg_version != 2 and kg_version != 3:
-        print ("Error :: KG_VERSION=" + str(kg_version) + " Unknown")
+        print (file=sys.stderr, "Error: KG_VERSION=" + str(kg_version) + " Unknown")
         exit (1)
 
     model_instance = None
     if kg_version == 2:
         ## Create Instance object
-        model_instance = instance2.KGV2_Instance(model_id, username=auth_user, password=auth_pass, token=auth_token)
+        model_instance = instance2.KGV2_Instance(model_id, token=auth_token)
     if kg_version == 3:
         ## Create Instance object
-        print ("HBP_AUTH_TOKEN = " + str(auth_token))
         model_instance = instance3.KGV3_Instance(model_id, token=auth_token)
 
     print ("Authentification Success")
