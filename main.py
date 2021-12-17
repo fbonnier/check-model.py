@@ -31,7 +31,7 @@ if __name__ == "__main__":
     ## Define a model to try
     model_id = args.id[0]
     if not model_id:
-        print (file=sys.stderr, "Error: Instance ID not recognized")
+        print ("Error: Instance ID not recognized", file=sys.stderr)
         exit(1)
 
     ## Define a working directory
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # if args.token:
     auth_token = args.token[0]
     if not auth_token:
-        print (file=sys.stderr, "Error: Authentification Token not recognized")
+        print ("Error: Authentification Token not recognized", file=sys.stderr)
         exit(1)
 
     # auth_user = os.environ["HBP_USER"]
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     kg_version = args.kg[0]
     if kg_version != 2 and kg_version != 3:
-        print (file=sys.stderr, "Error: KG_VERSION=" + str(kg_version) + " Unknown")
+        print ("Error: KG_VERSION=" + str(kg_version) + " Unknown", file=sys.stderr)
         exit (1)
 
     model_instance = None
