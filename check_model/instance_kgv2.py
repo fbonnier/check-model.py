@@ -87,12 +87,18 @@ class KGV2_Instance (instance.Instance):
     def close_script_file (self):
         super().close_script_file()
 
-    def connect_to_service (self, username = None, password = None, token = None):
+    def connect_to_service (self, username=None, password=None, token=None):
         # Connect to HBP Model Catalog
         return ModelCatalog(username=username, password=password, token=token)
 
 
-    def __init__ (self, new_id, username=None, password=None, token=None):
-        super().__init__ (new_id)
+    def __init__ (self, id, username=None, password=None, token=None):
+        super().__init__ (json)
+        # super().__init__ (new_id)
         self.catalog = self.connect_to_service(username=username, password=password, token=token)
         self.download_instance_metadata ()
+
+    def __init__ (self, json):
+        super().__init__ (json)
+        # super().__init__ (new_id)
+        # self.catalog = self.connect_to_service(username=username, password=password, token=token)

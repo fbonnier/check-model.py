@@ -71,12 +71,13 @@ class Instance:
     metadata = dict()
 
     script_file_ptr = None
+    json_file = None
 
     def get_watchdog (self):
         # Get watchdog/watchmedo instructions
         print ("get_watchdog ==> START")
         print ("get_watchdog ==> END")
-        return ("watchmedo shell-command --command='echo \"${watch_src_path} ${watch_dest_path}\" >> ${WORKDIR}/watchdog_log.txt' --patterns='*' --ignore-patterns='watchdog_log.txt' --ignore-directories --recursive ${WORKDIR} & WATCHDOG_PID=$!;\n")
+        return ("watchmedo shell-command --command='echo \"${watch_src_path} ${watch_dest_path}\" >> " + self.workdir + "/watchdog_log.txt' --patterns='*' --ignore-patterns='watchdog_log.txt' --ignore-directories --recursive " + self.workdir + " & WATCHDOG_PID=$!;\n")
 
     def write_watchdog (self):
         # Write watchdog/watchmedo instructions
@@ -109,7 +110,6 @@ class Instance:
         self.script_file_ptr = open (work_dir + "/run_me.sh", "w")
         # f = open (WORKDIR + "/run_me.sh", "a")
         self.script_file_ptr.write("#!/bin/bash\n\n")
-        runscript_file = work_dir + self.id + ".sh"
         self.workdir = work_dir
         print ("create_script_file ==> END")
 
@@ -196,77 +196,78 @@ class Instance:
         # Else get code location
         # If source is archive, WGET archive file
         # idx_archive = archive.is_archive(self.metadata["source"])
-        try:
+        for isource in self.metadata["source"]:
+            try:
             # Source is an archive
-            # idx = is_archive.index(True)
-            response = requests.get(self.metadata["source"], stream=True)
-            if (response.ok):
-                self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + self.metadata["source"] + "\n")
-                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
-                print ("write_code_location ==> END")
-                self.script_file_ptr.write ("\n")
-                return
-            else :
-                errors.print_error (self.metadata["source"] + "' Response status = " + str(response.status_code), "fail")
-                self.script_file_ptr.close()
-                exit(errors.EXIT_FAILURE)
-        except ValueError:
-            # Source is not archive
-            errors.print_error (self.metadata["source"] + " is not an archive. Let's try something else ...", "continue")
+                response = requests.get(isource, stream=True)
+                if (response.ok):
+                    self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + isource + "\n")
+                    self.metadata["archive_name"] = isource.split("/")[-1]
+                    print ("write_code_location ==> END")
+                    self.script_file_ptr.write ("\n")
+                    return
+                else :
+                    errors.print_error (isource + "' Response status = " + str(response.status_code), "fail")
+                    self.script_file_ptr.close()
+                    exit(errors.EXIT_FAILURE)
+            except ValueError:
+                # Source is not archive
+                errors.print_error (isource + " is not an archive. Let's try something else ...", "continue")
 
 
-        # If source is git repo
-        if (self.metadata["source"].startswith(main_repo["github"]["pattern"])):
-            # If model has version number, try to get archive file of version
-            print ("Source is GIT repository")
-            if (self.metadata["version"]):
-                # For all archive format, ping the file
-                print("Try to get release archive from version number ...")
-                for format in archive.archive_format:
-                    tar_url = self.metadata["source"] + "/archive/v" + self.metadata["version"] + format
-                    response = requests.get(tar_url, stream=True)
-                    if(response.ok):
-                        self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + tar_url + "\n")
-                        self.metadata["archive_name"] = tar_url.split("/")[-1]
-                        print("Try to get release archive from version number ... SUCCESS")
-                        print ("write_code_location ==> END")
-                        self.script_file_ptr.write ("\n")
-                        return
-
-                print("Try to get release archive from version number ... FAIL")
-                errors.print_error (self.metadata["source"] + " does not provide archive release, try to get GIT commit tag from version number.", "continue")
-
-                ## Get commit from version number
-                ## The revision branch should be master
-                repo.commit('master')
-                self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id + "\n")
-                print ("write_code_location ==> END")
-                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
-                self.script_file_ptr.write ("\n")
-                return
-            else :
-                # Git clone project
-                errors.print_error (self.metadata["source"] + " does not have version number, try to clone GIT project.", "continue")
-                self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir + "/" + self.id + "\n")
-                self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
-                print ("write_code_location ==> END")
-                self.script_file_ptr.write ("\n")
-                return
+            # # If source is git repo
+            # if (isource.startswith(main_repo["github"]["pattern"])):
+            #     # If model has version number, try to get archive file of version
+            #     print ("Source is GIT repository")
+            #     if (self.metadata["version"]):
+            #         # For all archive format, ping the file
+            #         print("Try to get release archive from version number ...")
+            #         for format in archive.archive_format:
+            #             tar_url = self.metadata["source"] + "/archive/v" + self.metadata["version"] + format
+            #             response = requests.get(tar_url, stream=True)
+            #             if(response.ok):
+            #                 self.script_file_ptr.write ("wget -N --directory-prefix=" + self.workdir + " " + tar_url + "\n")
+            #                 self.metadata["archive_name"] = tar_url.split("/")[-1]
+            #                 print("Try to get release archive from version number ... SUCCESS")
+            #                 print ("write_code_location ==> END")
+            #                 self.script_file_ptr.write ("\n")
+            #                 return
+            #
+            #         print("Try to get release archive from version number ... FAIL")
+            #         errors.print_error (self.metadata["source"] + " does not provide archive release, try to get GIT commit tag from version number.", "continue")
+            #
+            #         ## Get commit from version number
+            #         ## The revision branch should be master
+            #         repo.commit('master')
+            #         self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir  + "/" + self.id + "\n")
+            #         print ("write_code_location ==> END")
+            #         self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
+            #         self.script_file_ptr.write ("\n")
+            #         return
+            #     else :
+            #         # Git clone project
+            #         errors.print_error (self.metadata["source"] + " does not have version number, try to clone GIT project.", "continue")
+            #         self.script_file_ptr.write ("git clone " + self.metadata["source"] + " " + self.workdir + "/" + self.id + "\n")
+            #         self.metadata["archive_name"] = self.metadata["source"].split("/")[-1]
+            #         print ("write_code_location ==> END")
+            #         self.script_file_ptr.write ("\n")
+            #         return
 
         # Error :: the source does not exists or source pattern not taken into account
-        errors.print_error (self.metadata["source"] + " (" + self.metadata["version"] + ")' does not exist or service not available.", "fail")
-        self.script_file_ptr.close()
-        exit (errors.EXIT_FAILURE)
+            errors.print_error (isource + " (" + self.metadata["version"] + ")' does not exist or service not available.", "fail")
+            self.script_file_ptr.close()
+            exit (errors.EXIT_FAILURE)
 
     def write_code_unzip (self):
         print ("write_code_unzip ==> START")
         # is_archive = [self.metadata["archive_name"].endswith(format) for format in archive.archive_format]
-        try:
-            # idx = is_archive.index(True)
-            # filename = var_download_command.split("/")
-            self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + self.metadata["archive_name"] + " " + self.workdir + "/" + self.id + "\n")
-        except ValueError as e:
-            errors.print_error ("write_code_unzip :: " + self.metadata["archive_name"] + " is not a recognized archive format", "fail")
+        for isource in self.metadata["source"]:
+            try:
+                # idx = is_archive.index(True)
+                # filename = var_download_command.split("/")
+                self.script_file_ptr.write ("arc -overwrite unarchive " + self.workdir + "/" + isource + " " + self.workdir + "/" + "\n")
+            except ValueError as e:
+                errors.print_error ("write_code_unzip :: " + isource + " is not a recognized archive format", "fail")
             # print (e)
             # self.script_file_ptr.close()
             # exit (errors.EXIT_FAILURE)
@@ -278,7 +279,7 @@ class Instance:
         # CD to project base folder
         print ("Go to project root folder")
         self.script_file_ptr.write("# Go to Instance's root repository\n")
-        self.script_file_ptr.write("cd " + self.workdir + "/" + self.id + "\n")
+        self.script_file_ptr.write("cd " + self.workdir + "/\n")
         self.script_file_ptr.write("while [ $(ls -l | grep -v ^d | wc -l) -lt 2 ]\ndo\nif [ -d $(ls) ]; then \ncd $(ls);\nfi\ndone" + "\n\n")
         print ("write_goto_project_folder ==> END")
 
@@ -287,9 +288,9 @@ class Instance:
         self.script_file_ptr.write ("# Additional PIP packages\n")
         # TODO : try-catch to catch missing pip_install parameter
         try :
-            if self.metadata["parameters"]["pip_installs"]:
+            if self.metadata["pip_installs"]:
                 print ("Installing additional PIP packages")
-                for ipackage in self.metadata["parameters"]["pip_installs"]:
+                for ipackage in self.metadata["pip_installs"]:
                     self.script_file_ptr.write ("pip3 install -e " + ipackage + "\n")
                 self.script_file_ptr.write ("\n")
             else:
@@ -302,12 +303,42 @@ class Instance:
             exit (errors.EXIT_FAILURE)
         print ("write_pip_installs ==> END")
 
+    def write_download_inputs (self):
+        print ("KGV2 :: write_download_inputs ==> START")
+        self.script_file_ptr.write ("# Download and place inputs\n")
+        if self.metadata["inputs"]:
+            for iinput in self.metadata["inputs"]:
+                print (iinput)
+                if iinput["url"] and iinput["destination"]:
+                    self.script_file_ptr.write ("wget -N " + iinput["url"] + " --directory-prefix=./" + iinput["destination"] + "\n")
+
+        self.script_file_ptr.write ("\n")
+        print ("KGV2 :: write_download_inputs ==> END")
+
+
+    def write_code_run (self):
+        print ("KGV2 :: write_code_run ==> START")
+        self.script_file_ptr.write ("# Run instruction\n")
+        if self.metadata["run"]:
+            for irun in self.metadata["run"]:
+                self.script_file_ptr.write(irun + "\n")
+        else:
+            instance.print_error ("No run script specified", "fail")
+            self.script_file_ptr.close()
+            exit(instance.EXIT_FAILURE)
+        print ("KGV2 :: write_code_run ==> END")
 
     def close_script_file (self):
         print ("close_script_file ==> START")
         self.script_file_ptr.close()
         print ("close_script_file ==> END")
 
-    def __init__ (self, new_id):
-        self.id = new_id
-        self.workdir = os.environ.get("WORKDIR", os.environ["HOME"])
+    # def __init__ (self, new_id):
+    #     self.id = new_id
+    #     self.workdir = os.environ.get("WORKDIR", os.environ["HOME"])
+
+    def __init__ (self, json_file):
+        self.json = json_file
+        f = open(json_file)
+        self.metadata = json.load(f)
+        f.close()
