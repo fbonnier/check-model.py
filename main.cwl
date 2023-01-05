@@ -1,6 +1,6 @@
 # Automate model checking workflow
 class: Workflow
-cwlVersion: v1.2
+cwlVersion: v1.0
 id: model_verification
 label: Model Verification TODO
 $namespaces:
@@ -18,22 +18,34 @@ inputs:
     type: string
     default: "."
 
+  hbp_pass:
+    type: string
+    default: ""
+    
+  hbp_user:
+    type: string
+    default: ""
+
+
 outputs:
-  jsonfile:
+  credentials:
     type: File
-    outputSource: step1_download_metadata/jsonfile
-  download_metadata_log_err:
-    type: File
-    outputSource: step1_download_metadata/download_metadata_log_err
-  download_metadata_log:
-    type: File
-    outputSource: step1_download_metadata/download_metadata_log
-  generate_runscript_log_err:
-    type: File
-    outputSource: step3_generate_runscript/generate_runscript_log_err
-  generate_runscript_log:
-    type: File
-    outputSource: step3_generate_runscript/generate_runscript_log
+    outputSource: step0_get_credentials/credentials
+  # jsonfile:
+  #   type: File
+  #   outputSource: step1_download_metadata/jsonfile
+  # download_metadata_log_err:
+  #   type: File
+  #   outputSource: step1_download_metadata/download_metadata_log_err
+  # download_metadata_log:
+  #   type: File
+  #   outputSource: step1_download_metadata/download_metadata_log
+  # generate_runscript_log_err:
+  #   type: File
+  #   outputSource: step3_generate_runscript/generate_runscript_log_err
+  # generate_runscript_log:
+  #   type: File
+  #   outputSource: step3_generate_runscript/generate_runscript_log
 #  code_directory:
 #    type: Directory
 #    outputSource: step2_download_code/code_directory
@@ -42,15 +54,54 @@ outputs:
 #    outputSource: step2_download_code/code_archive
 
 steps:
-  step1_download_metadata:
+
+  step0_get_credentials:
+    run:
+      class: CommandLineTool
+      baseCommand: echo
+      requirements:
+        EnvVarRequirement:
+          envDef:
+            HBP_INSTANCE_ID: $(inputs.instance_id)
+            WORKDIR: $(inputs.workdir)
+            HBP_USER: $(inputs.hbp_user)
+            HBP_PASSWORD: $(inputs.hbp_pass)
+            HBP_TOKEN: $(inputs.hbp_token)
+
+      inputs:
+        instance_id: string
+        workdir: string
+        hbp_user: string
+        hbp_pass: string
+        hbp_token: string
+
+      # out: [credentials]
+
+      outputs:
+        credentials:
+          type: stdout
+
+      stdout: credentials.yml
+    
     in:
       instance_id: model_instance_id
-      token: hbp_token
+      workdir: workdir
+      hbp_user: hbp_user
+      hbp_pass: hbp_pass
+      hbp_token: hbp_token
+    out: [credentials]
 
-    out: [jsonfile, download_metadata_log_err, download_metadata_log]
 
-    run: ./download-metadata.cwl
-    label: Download Metadata
+# Download workflow and meta
+  # step1_download_metadata:
+  #   in:
+  #     instance_id: model_instance_id
+  #     token: hbp_token
+
+  #   out: [jsonfile, download_metadata_log_err, download_metadata_log]
+
+  #   run: ./download-metadata.cwl
+  #   label: Download Metadata
 
 #  cat:
 #    in:
