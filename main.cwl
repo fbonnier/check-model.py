@@ -26,11 +26,24 @@ inputs:
     type: string
     default: ""
 
+  # message:
+  #   type: string
+  #   default: ""
+    
+
 
 outputs:
   credentials:
     type: File
     outputSource: step0_get_credentials/credentials
+
+  message:
+    type: string
+    outputSource: step_test/message
+
+  # hbp_token:
+  #   type: string
+  #   outputSource: step0_get_credentials/token
   # jsonfile:
   #   type: File
   #   outputSource: step1_download_metadata/jsonfile
@@ -58,38 +71,86 @@ steps:
   step0_get_credentials:
     run:
       class: CommandLineTool
-      baseCommand: echo
+      baseCommand: ["sh", "get_credentials.sh"]
       requirements:
-        EnvVarRequirement:
-          envDef:
-            HBP_INSTANCE_ID: $(inputs.instance_id)
-            WORKDIR: $(inputs.workdir)
-            HBP_USER: $(inputs.hbp_user)
-            HBP_PASSWORD: $(inputs.hbp_pass)
-            HBP_TOKEN: $(inputs.hbp_token)
+        InitialWorkDirRequirement:
+          listing:
+            - entryname: get_credentials.sh
+              entry: |-
+                MSG="hbp_instance_id: \${HBP_INSTANCE_ID}\\n"
+                MSG="\${MSG}hbp_user: \${HBP_USER}\\n"
+                MSG="\${MSG}hbp_pass: \${HBP_PASSWORD}\\n"
+                MSG="\${MSG}hbp_token: \${HBP_TOKEN}\\n"
+                MSG="\${MSG}hbp_workdir: \${WORKDIR}"
+                echo "\${MSG}"
 
-      inputs:
-        instance_id: string
-        workdir: string
-        hbp_user: string
-        hbp_pass: string
-        hbp_token: string
+      # requirements:
+
+      inputs: {}
+      #   instance_id: string
+      #   workdir: string
+      #   hbp_user: string
+      #   hbp_pass: string
+      #   hbp_token: string
 
       # out: [credentials]
 
       outputs:
         credentials:
           type: stdout
+        # token: 
 
       stdout: credentials.yml
     
-    in:
-      instance_id: model_instance_id
-      workdir: workdir
-      hbp_user: hbp_user
-      hbp_pass: hbp_pass
-      hbp_token: hbp_token
+    in: {}
+      # instance_id: model_instance_id
+      # workdir: workdir
+      # hbp_user: hbp_user
+      # hbp_pass: hbp_pass
+      # hbp_token: hbp_token
     out: [credentials]
+  
+  step_test:
+    run:
+      class: ExpressionTool
+      requirements:
+        InlineJavascriptRequirement: {}
+
+      inputs: {}
+
+      outputs:
+        message:
+          type: string
+      expression: |
+        ${ return {"message": process.env.HBP_TOKEN}; }
+    
+    in: {}
+    out: [message]
+
+  step_echo:
+    run:
+      class: CommandLineTool
+      baseCommand: echo
+      requirements: 
+        StepInputExpressionRequirement: {}
+
+      inputs:
+        message:
+          type: string
+        
+
+      
+      outputs:
+        myout:
+          type: stdout
+
+      stdout: out.yml
+
+    in:
+      message:
+        valueFrom: $(outputs.message)
+    out: [myout]
+
 
 
 # Download workflow and meta
