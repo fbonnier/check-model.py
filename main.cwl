@@ -9,25 +9,16 @@ $namespaces:
 inputs:
   hbp_token: string
 
-  model_instance_id:
-    type: string
-    default: ""
+  model_instance_id: string
 
-  workdir:
-    type: string
-    default: "."
-
-  hbp_pass:
-    type: string
-    default: ""
-    
-  hbp_user:
-    type: string
-    default: ""
-
-  # message:
+  # workdir:
   #   type: string
-  #   default: ""
+  #   default: "."
+
+  # hbp_pass: string
+    
+  # hbp_user: string
+
     
 # requirements:
   # SubworkflowFeatureRequirement: {}
@@ -41,10 +32,10 @@ inputs:
   #         - name: hbp_token
   #           type: string
 
-outputs: []
-  # output:
-  #   type: File
-  #   outputSource: step_echo/myout
+outputs:
+  jsonfile:
+    type: File
+    outputSource: step1_download_metadata/jsonfile
   # credentials:
   #   type: File
   #   outputSource: step0_get_credentials/credentials
@@ -56,9 +47,7 @@ outputs: []
   # hbp_token:
   #   type: string
   #   outputSource: step0_get_credentials/token
-  # jsonfile:
-  #   type: File
-  #   outputSource: step1_download_metadata/jsonfile
+  
   # download_metadata_log_err:
   #   type: File
   #   outputSource: step1_download_metadata/download_metadata_log_err
@@ -80,66 +69,54 @@ outputs: []
 
 steps:
 
-  # step0_get_credentials:
-  #   run:
-  #     class: CommandLineTool
-  #     baseCommand: ["sh", "get_credentials.sh"]
-  #     requirements:
-  #       InitialWorkDirRequirement:
-  #         listing:
-  #           - entryname: get_credentials.sh
-  #             entry: |-
-  #               MSG="hbp_instance_id: \${HBP_INSTANCE_ID}\\n"
-  #               MSG="\${MSG}hbp_user: \${HBP_USER}\\n"
-  #               MSG="\${MSG}hbp_pass: \${HBP_PASSWORD}\\n"
-  #               MSG="\${MSG}hbp_token: \${HBP_TOKEN}\\n"
-  #               MSG="\${MSG}hbp_workdir: \${WORKDIR}"
-  #               echo "\${MSG}"
-
-  #     # requirements:
-
-  #     inputs: {}
-  #     #   instance_id: string
-  #     #   workdir: string
-  #     #   hbp_user: string
-  #     #   hbp_pass: string
-  #     #   hbp_token: string
-
-  #     # out: [credentials]
-
-  #     outputs:
-  #       credentials:
-  #         type: stdout
-  #       # token: 
-
-  #     stdout: credentials.yml
-    
-  #   in: {}
-  #     # instance_id: model_instance_id
-  #     # workdir: workdir
-  #     # hbp_user: hbp_user
-  #     # hbp_pass: hbp_pass
-  #     # hbp_token: hbp_token
-  #   out: [credentials]
+  step0_get_credentials:
+    run: get_credentials.cwl
   
-  # step_test:
-  #   run:
-  #     class: ExpressionTool
-  #     requirements:
-  #       InlineJavascriptRequirement: {}
+    in:
+      hbp_token: hbp_token
 
-  #     inputs: {}
+    out: []
+    label: Get Credentials
 
-  #     outputs:
-  #       message:
-  #         type: string
-  #     expression: |
-  #       ${ return {"message": process.env.HBP_TOKEN}; }
-    
-  #   in: {}
-  #   out: [message]
 
-  step_echo:
+
+# Download workflow and meta
+  step1_download_metadata: 
+    run: download_metadata.cwl
+    in:
+      hbp_token: hbp_token
+      model_instance_id: model_instance_id
+
+    out:
+      jsonfile: jsonfile
+
+    label: Download Metadata
+
+  # Download input data, code, environement from JSON file descriptor
+  step2_download_data: 
+    run: download_data.cwl
+    in:
+      jsonfile: jsonfile
+
+    out:
+      jsonfile: jsonfile
+
+    label: Download Metadata
+
+  # step3_run_model:
+  #   run: download_data.cwl
+  #   in: 
+  #     jsonfile: jsonfile
+
+
+  #   out: 
+  #     jsonfile: jsonfile
+
+  #   label: Run model
+
+
+# Testing Step for debugging
+  step_debug:
     run:
       class: CommandLineTool
       baseCommand: echo
@@ -149,29 +126,15 @@ steps:
       inputs:
         hbp_token:
           type: string
-          default: "TG2"
+          inputBinding:
+            position: 1
       
-      outputs: 
-        type: stdout
+      outputs: []
 
     in:
       hbp_token: hbp_token
-        # source: step_test/message
-        # valueFrom: $(outputs.message)
     out: []
 
-
-
-# Download workflow and meta
-  # step1_download_metadata:
-  #   in:
-  #     instance_id: model_instance_id
-  #     token: hbp_token
-
-  #   out: [jsonfile, download_metadata_log_err, download_metadata_log]
-
-  #   run: ./download-metadata.cwl
-  #   label: Download Metadata
 
 #  cat:
 #    in:
