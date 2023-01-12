@@ -5,10 +5,9 @@ id: model_verification
 label: Model Verification TODO
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
+
 inputs:
-  hbp_token:
-    type: string
-    default: ""
+  hbp_token: string
 
   model_instance_id:
     type: string
@@ -30,16 +29,29 @@ inputs:
   #   type: string
   #   default: ""
     
+# requirements:
+  # SubworkflowFeatureRequirement: {}
+  # InlineJavascriptRequirement: {}
+  # StepInputExpressionRequirement: {}
+  # SchemaDefRequirement:
+  #   types:
+  #     - name: test_record
+  #       type: record
+  #       fields:
+  #         - name: hbp_token
+  #           type: string
 
+outputs: []
+  # output:
+  #   type: File
+  #   outputSource: step_echo/myout
+  # credentials:
+  #   type: File
+  #   outputSource: step0_get_credentials/credentials
 
-outputs:
-  credentials:
-    type: File
-    outputSource: step0_get_credentials/credentials
-
-  message:
-    type: string
-    outputSource: step_test/message
+  # message:
+  #   type: string
+  #   outputSource: step_test/message
 
   # hbp_token:
   #   type: string
@@ -68,88 +80,85 @@ outputs:
 
 steps:
 
-  step0_get_credentials:
-    run:
-      class: CommandLineTool
-      baseCommand: ["sh", "get_credentials.sh"]
-      requirements:
-        InitialWorkDirRequirement:
-          listing:
-            - entryname: get_credentials.sh
-              entry: |-
-                MSG="hbp_instance_id: \${HBP_INSTANCE_ID}\\n"
-                MSG="\${MSG}hbp_user: \${HBP_USER}\\n"
-                MSG="\${MSG}hbp_pass: \${HBP_PASSWORD}\\n"
-                MSG="\${MSG}hbp_token: \${HBP_TOKEN}\\n"
-                MSG="\${MSG}hbp_workdir: \${WORKDIR}"
-                echo "\${MSG}"
+  # step0_get_credentials:
+  #   run:
+  #     class: CommandLineTool
+  #     baseCommand: ["sh", "get_credentials.sh"]
+  #     requirements:
+  #       InitialWorkDirRequirement:
+  #         listing:
+  #           - entryname: get_credentials.sh
+  #             entry: |-
+  #               MSG="hbp_instance_id: \${HBP_INSTANCE_ID}\\n"
+  #               MSG="\${MSG}hbp_user: \${HBP_USER}\\n"
+  #               MSG="\${MSG}hbp_pass: \${HBP_PASSWORD}\\n"
+  #               MSG="\${MSG}hbp_token: \${HBP_TOKEN}\\n"
+  #               MSG="\${MSG}hbp_workdir: \${WORKDIR}"
+  #               echo "\${MSG}"
 
-      # requirements:
+  #     # requirements:
 
-      inputs: {}
-      #   instance_id: string
-      #   workdir: string
-      #   hbp_user: string
-      #   hbp_pass: string
-      #   hbp_token: string
+  #     inputs: {}
+  #     #   instance_id: string
+  #     #   workdir: string
+  #     #   hbp_user: string
+  #     #   hbp_pass: string
+  #     #   hbp_token: string
 
-      # out: [credentials]
+  #     # out: [credentials]
 
-      outputs:
-        credentials:
-          type: stdout
-        # token: 
+  #     outputs:
+  #       credentials:
+  #         type: stdout
+  #       # token: 
 
-      stdout: credentials.yml
+  #     stdout: credentials.yml
     
-    in: {}
-      # instance_id: model_instance_id
-      # workdir: workdir
-      # hbp_user: hbp_user
-      # hbp_pass: hbp_pass
-      # hbp_token: hbp_token
-    out: [credentials]
+  #   in: {}
+  #     # instance_id: model_instance_id
+  #     # workdir: workdir
+  #     # hbp_user: hbp_user
+  #     # hbp_pass: hbp_pass
+  #     # hbp_token: hbp_token
+  #   out: [credentials]
   
-  step_test:
-    run:
-      class: ExpressionTool
-      requirements:
-        InlineJavascriptRequirement: {}
+  # step_test:
+  #   run:
+  #     class: ExpressionTool
+  #     requirements:
+  #       InlineJavascriptRequirement: {}
 
-      inputs: {}
+  #     inputs: {}
 
-      outputs:
-        message:
-          type: string
-      expression: |
-        ${ return {"message": process.env.HBP_TOKEN}; }
+  #     outputs:
+  #       message:
+  #         type: string
+  #     expression: |
+  #       ${ return {"message": process.env.HBP_TOKEN}; }
     
-    in: {}
-    out: [message]
+  #   in: {}
+  #   out: [message]
 
   step_echo:
     run:
       class: CommandLineTool
       baseCommand: echo
-      requirements: 
-        StepInputExpressionRequirement: {}
+      # requirements: 
+      #   StepInputExpressionRequirement: {}
 
       inputs:
-        message:
+        hbp_token:
           type: string
-        
-
+          default: "TG2"
       
-      outputs:
-        myout:
-          type: stdout
-
-      stdout: out.yml
+      outputs: 
+        type: stdout
 
     in:
-      message:
-        valueFrom: $(outputs.message)
-    out: [myout]
+      hbp_token: hbp_token
+        # source: step_test/message
+        # valueFrom: $(outputs.message)
+    out: []
 
 
 
