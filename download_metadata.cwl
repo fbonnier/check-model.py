@@ -6,28 +6,41 @@ label: Download Metadata TODO
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-baseCommand: ["python3"]
+requirements:
+  - class: InitialWorkDirRequirement
+    listing:
+      -$(inputs.workdir)
+
+  # 'sbg:license': CeCiLL
+  # 'sbg:toolAuthor': Florent Bonnier
+baseCommand: ["python3", "../hbp_cwl_input_downloader/main.py"]
 
 inputs:
   hbp_token:
     type: string
     inputBinding:
         position: 2
+        prefix: --token
 
   model_instance_id:
     type: string
     inputBinding:
         position: 3
+        prefix: --id
 
   workdir: 
+    type: File
+    inputBinding:
+        position: 1
+        valueFrom: $(self.basename)
+
+  instruction: 
     type: string
     inputBinding:
-        position: 4
-
-  run_me: 
-    type: File
+      position: 5
+      prefix: --run
     # dirname: workdir
-    # basename: "hbp_cwl_input_downloader/main.py"
+    # basename: 
     
 
 
@@ -140,8 +153,3 @@ outputs:
 #      runscript: step3_generate_runscript/runscript
 #    out: [expected_result_list, produced_result_list, code_directory]
 #    run: ./run_me.cwl
-
-
-requirements: []
-'sbg:license': CeCiLL
-'sbg:toolAuthor': Florent Bonnier

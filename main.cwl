@@ -11,9 +11,9 @@ inputs:
 
   model_instance_id: string
 
-  # workdir:
-  #   type: string
-  #   default: "."
+  instruction: string
+
+  workdir: File
 
   # hbp_pass: string
     
@@ -32,10 +32,9 @@ inputs:
   #         - name: hbp_token
   #           type: string
 
-outputs:
+outputs: 
   jsonfile:
     type: File
-    outputSource: step1_download_metadata/jsonfile
   # credentials:
   #   type: File
   #   outputSource: step0_get_credentials/credentials
@@ -86,22 +85,26 @@ steps:
     in:
       hbp_token: hbp_token
       model_instance_id: model_instance_id
+      instruction: instruction
+      # workdir: workdir
 
-    out:
-      jsonfile: jsonfile
+
+
+    out: [jsonfile]
 
     label: Download Metadata
 
   # Download input data, code, environement from JSON file descriptor
-  step2_download_data: 
-    run: download_data.cwl
-    in:
-      jsonfile: jsonfile
+  # step2_download_data: 
+  #   run: download_data.cwl
+  #   in:
+  #     jsonfile: 
+  #       valueFrom: step1_download_metadata/jsonfile
 
-    out:
-      jsonfile: jsonfile
+  #   out:
+  #     jsonfile: jsonfile
 
-    label: Download Metadata
+  #   label: Download Metadata
 
   # step3_run_model:
   #   run: download_data.cwl
