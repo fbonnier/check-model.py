@@ -19,6 +19,8 @@ inputs:
     
   # hbp_user: string
 
+  jsonfile: File
+
     
 # requirements:
   # SubworkflowFeatureRequirement: {}
@@ -68,6 +70,8 @@ outputs:
 
 steps:
 
+  # Get Credentials.
+  # USELESS ?
   step0_get_credentials:
     run: get_credentials.cwl
   
@@ -80,17 +84,19 @@ steps:
 
 
 # Download workflow and meta
+# JSON File contains metadata and is localized in {workdir}, a.k.a {self.path/..}
   step1_download_metadata: 
     run: download_metadata.cwl
     in:
       hbp_token: hbp_token
       model_instance_id: model_instance_id
       instruction: instruction
-      # workdir: workdir
+      workdir: workdir
 
 
 
-    out: [jsonfile]
+    out: 
+      jsonfile: jsonfile
 
     label: Download Metadata
 
@@ -122,20 +128,21 @@ steps:
   step_debug:
     run:
       class: CommandLineTool
-      baseCommand: echo
+      baseCommand: cat
       # requirements: 
       #   StepInputExpressionRequirement: {}
 
       inputs:
-        hbp_token:
-          type: string
+        jsonfile:
+          type: File
           inputBinding:
             position: 1
+            valueFrom: step1_download_metadata/jsonfile
       
       outputs: []
 
     in:
-      hbp_token: hbp_token
+      jsonfile: jsonfile
     out: []
 
 

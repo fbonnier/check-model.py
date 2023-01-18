@@ -32,7 +32,7 @@ inputs:
     type: File
     inputBinding:
         position: 1
-        valueFrom: $(self.basename)
+        valueFrom: $(self.path)
 
   instruction: 
     type: string
