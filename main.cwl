@@ -13,7 +13,8 @@ inputs:
 
   instruction: string
 
-  workdir: File
+  # workdir: Directory
+  # workdir: string
 
   # hbp_pass: string
     
@@ -24,10 +25,13 @@ inputs:
     
 requirements:
   InlineJavascriptRequirement: {}
+  # InitialWorkDirRequirement:
+  #   listing:
+  #     - $(inputs.workdir)
   # 'sbg:license': CeCiLL
   # 'sbg:toolAuthor': Florent Bonnier
 
-outputs: 
+outputs:  
   jsonfile:
     type: File
 
@@ -54,7 +58,7 @@ steps:
       hbp_token: hbp_token
       model_instance_id: model_instance_id
       instruction: instruction
-      workdir: workdir
+      # workdir: workdir
 
 
 
@@ -65,21 +69,21 @@ steps:
 
 
 # Testing Step for debugging
-  step_debug:
-    run:
-      class: CommandLineTool
-      baseCommand: cat
-      # requirements: 
-      #   StepInputExpressionRequirement: {}
+  # step_debug:
+  #   run:
+  #     class: CommandLineTool
+  #     baseCommand: cat
+  #     # requirements: 
+  #     #   StepInputExpressionRequirement: {}
 
-      inputs:
-        jsonfile: 
-          type: File
-          inputBinding:
-            position: 1
+  #     inputs:
+  #       jsonfile: 
+  #         type: File
+  #         inputBinding:
+  #           position: 1
       
-      outputs: []
-      stdout: stdout
-    in:
-      jsonfile: step1_download_metadata/jsonfile
-    out: []
+  #     outputs: []
+  #     stdout: stdout
+  #   in:
+  #     jsonfile: step1_download_metadata/jsonfile
+  #   out: []
