@@ -13,20 +13,18 @@ requirements: []
 
   # 'sbg:license': CeCiLL
   # 'sbg:toolAuthor': Florent Bonnier
-baseCommand: ["python3", "hbp_cwl_input_downloader/main.py"]
+baseCommand: ["hbp_cwl_input_downloader"]
 
 inputs:
   hbp_token:
     type: string
     inputBinding:
-        # position: 1
-        prefix: --token
+        position: 1
 
   model_instance_id:
     type: string
     inputBinding:
-        # position: 2
-        prefix: --id
+        position: 2
 
   # workdir: 
   #   type: string
@@ -37,8 +35,8 @@ inputs:
   instruction: 
     type: string
     inputBinding:
-      # position: 4
-      prefix: --run
+      position: 3
+      # prefix: --run
     # dirname: workdir
     # basename: 
     
