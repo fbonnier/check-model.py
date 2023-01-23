@@ -6,6 +6,10 @@ label: Model Verification TODO
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
+hints:
+  DockerRequirement:
+    dockerPull: docker-registry.ebrains.eu/hbp-model-validation/hbp-model-validation@sha256:60bc113cdf9bf496f6c005469fdfcc9066681d21431a463e6fd2039b8feacfb9
+
 inputs:
   hbp_token: string
 

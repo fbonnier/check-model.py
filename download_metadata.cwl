@@ -20,11 +20,13 @@ inputs:
     type: string
     inputBinding:
         position: 1
+        prefix: --token
 
   model_instance_id:
     type: string
     inputBinding:
         position: 2
+        prefix: --id
 
   # workdir: 
   #   type: string
@@ -36,7 +38,7 @@ inputs:
     type: string
     inputBinding:
       position: 3
-      # prefix: --run
+      prefix: --run
     # dirname: workdir
     # basename: 
     
