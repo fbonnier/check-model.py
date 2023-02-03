@@ -8,7 +8,7 @@ $namespaces:
 
 hints:
   DockerRequirement:
-    dockerPull: docker-registry.ebrains.eu/hbp-model-validation/docker-ebrains-base@sha256:5c549b7c53342e5b31f1e0f39810530bfcc7512293ed801609060d5c7de947ab
+    dockerPull: docker-registry.ebrains.eu/hbp-model-validation/docker-ebrains-base
 
 inputs:
   hbp_token: string
