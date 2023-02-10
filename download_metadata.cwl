@@ -44,5 +44,7 @@ inputs:
     
 
 outputs: 
-    jsonfile:
+    metareport:
         type: File
+        outputBinding:
+          glob: report.json

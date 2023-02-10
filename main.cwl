@@ -35,9 +35,13 @@ requirements:
   # 'sbg:license': CeCiLL
   # 'sbg:toolAuthor': Florent Bonnier
 
-outputs:  
-  jsonfile:
-    type: File
+outputs:  []
+  # metareport:
+  #   type: File
+  #   outputBinding: 
+  #     glob: report.json
+
+
 
 steps:
 
@@ -66,25 +70,48 @@ steps:
 
 
 
-    out: [jsonfile]
+    out: [metareport]
 
     label: Download Metadata
 
 
+  step2_script_generator:
+    run: script_generator.cwl
+    in:
+      jsonfile: step1_download_metadata/metareport
+
+    out: [runscript_bash]
+    label: Generates runscript to run the model
+
+
 
 # Testing Step for debugging
-  # step_debug:
-  #   run:
-  #     class: CommandLineTool
-  #     baseCommand: cat
-  #     # requirements: 
-  #     #   StepInputExpressionRequirement: {}
+# Print JSON File using 'cat'
+  step_print_JSON:
+    run: print_json_file.cwl
+    in:
+      jsonfile: step1_download_metadata/metareport
+    out: []
 
-  #     inputs:
-  #       jsonfile: 
-  #         type: File
-  #         inputBinding:
-  #           position: 1
+    label: Print JSON file
+  
+  
+# Testing Step for debugging
+# Print JSON File using 'cat'
+  step_print_runscript:
+    in:
+      runscript_bash: step2_script_generator/runscript_bash
+    out: []
+    label: Print runscript
+    run:
+      class: CommandLineTool
+      baseCommand: cat
+      inputs:
+        runscript_bash: 
+          type: File
+          inputBinding:
+            position: 1
+      outputs: []
       
   #     outputs: []
   #     stdout: stdout
