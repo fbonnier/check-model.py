@@ -10,7 +10,7 @@ requirements: []
 baseCommand: ["documentation_check"]
 
 inputs:
-  runreport:
+  report:
     type: File
     format: json
     inputBinding:

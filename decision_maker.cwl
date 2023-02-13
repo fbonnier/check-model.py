@@ -19,8 +19,11 @@ inputs:
   score_output_analysis:
     type: File
     inputBinding:
-        position: 1
-    
+      position: 1
+  score_documentation_analysis:
+    type: File
+    inputBinding:
+      position: 2
 
 outputs: 
     decision_report:

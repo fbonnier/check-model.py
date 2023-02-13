@@ -60,35 +60,42 @@ steps:
 
 # Download workflow and meta
 # JSON File contains metadata and is localized in {workdir}, a.k.a {self.path/..}
-  step1_download_metadata: 
+  download_metadata: 
     run: download_metadata.cwl
     in:
       hbp_token: hbp_token
       model_instance_id: model_instance_id
       instruction: instruction
-      # workdir: workdir
-
-
-
-    out: [metareport]
+      
+    out: [report]
 
     label: Download Metadata
 
+# Download data
+# Download code, inputs, documentation
+  download_data: 
+    run: download_data.cwl
+    in:
+      report: download_metadata/report
+      
+    out: [report]
 
-  step2_script_generator:
+    label: Download Data
+
+  script_generator:
     run: script_generator.cwl
     in:
-      jsonfile: step1_download_metadata/metareport
+      jsonfile: download_data/report
 
     out: [runscript_bash]
     label: Generates runscript to run the model
 
-  step3_run_model:
+  run_model:
   # TODO
     run: run_model.cwl
     in:
-      runscript: step2_script_generator/runscript_bash
-      jsonfile: step1_download_metadata/metareport
+      runscript: script_generator/runscript_bash
+      jsonfile: download_metadata/report
 
     out: [runreport]
 
@@ -98,17 +105,28 @@ steps:
   # TODO
     run: verification_output_analysis.cwl
     in:
-      runreport: step3_run_model/runreport
+      runreport: run_model/runreport
 
     out: [scoredreport]
 
     label: Verification output comparison
+
+  verification_documentation_analysis:
+  # TODO
+    run: verification_documentation_analysis.cwl
+    in:
+      report: download_data/report
+
+    out: [scoredreport]
+
+    label: Verification documentation analysis
 
   decision_maker:
   # TODO
     run: decision_maker.cwl
     in:
       score_output_analysis: verification_output_analysis/scoredreport
+      score_documentation_analysis: verification_documentation_analysis/scoredreport
 
     out: [decision_report]
 
@@ -117,7 +135,7 @@ steps:
   step_print_JSON:
     run: print_json_file.cwl
     in:
-      jsonfile: step1_download_metadata/metareport
+      jsonfile: download_metadata/report
     out: []
 
     label: Print JSON file
@@ -127,7 +145,7 @@ steps:
 # Print JSON File using 'cat'
   step_print_runscript:
     in:
-      runscript_bash: step2_script_generator/runscript_bash
+      runscript_bash: script_generator/runscript_bash
     out: []
     label: Print runscript
     run:

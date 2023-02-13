@@ -9,14 +9,14 @@ $namespaces:
 baseCommand: ["hbp_download_data"]
 
 inputs:
-  jsonfile:
+  report:
     type: File
     inputBinding:
       position: 1
       prefix: --json
 
 outputs:
-  jsonfile:
+  report:
     type: File
     outputBinding:
       glob: report.json
