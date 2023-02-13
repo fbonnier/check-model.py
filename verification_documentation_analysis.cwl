@@ -1,26 +1,24 @@
 # Automate model checking workflow
 class: CommandLineTool
 cwlVersion: v1.0
-id: download_data
-label: Download Data TODO
+id: verification_documentation_analysis
+label: Documentation analysis
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-baseCommand: ["hbp_download_data"]
+requirements: []
+baseCommand: ["documentation_check"]
 
 inputs:
-  jsonfile:
+  runreport:
     type: File
+    format: json
     inputBinding:
       position: 1
       prefix: --json
 
-outputs:
-  jsonfile:
+outputs: 
+  scoredreport:
     type: File
     outputBinding:
-      glob: report.json
-  
-requirements: []
-'sbg:license': CeCiLL
-'sbg:toolAuthor': Florent Bonnier
+      glob: documentation_report.json
