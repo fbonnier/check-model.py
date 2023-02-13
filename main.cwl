@@ -83,7 +83,34 @@ steps:
     out: [runscript_bash]
     label: Generates runscript to run the model
 
+  step3_run_model:
+  # TODO
+    run: run_model.cwl
+    in:
+      runscript: step2_script_generator/runscript_bash
+      jsonfile: step1_download_metadata/metareport
 
+    out: [runreport]
+
+    label: Run model
+
+  verification_output_analysis:
+  # TODO
+    run: verification_output_analysis.cwl
+    in:
+      runreport: step3_run_model/runreport
+
+    out: [scoredreport]
+
+    label: Verification output comparison
+
+  decision_maker:
+  # TODO
+    run: decision_maker.cwl
+    in:
+      score_output_analysis: verification_output_analysis/scoredreport
+
+    out: [decision_report]
 
 # Testing Step for debugging
 # Print JSON File using 'cat'
