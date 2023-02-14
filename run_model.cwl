@@ -26,3 +26,8 @@ outputs:
         type: File
         outputBinding:
           glob: runreport.json
+
+    watchdog_report:
+        type: File
+        outputBinding:
+            glob: watchdog_log.txt

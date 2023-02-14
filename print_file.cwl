@@ -14,7 +14,7 @@ $namespaces:
 baseCommand: cat 
 
 inputs:
-  jsonfile:
+  file:
     type: File
     inputBinding:
         position: 1
