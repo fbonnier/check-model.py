@@ -133,15 +133,25 @@ steps:
 
 # Testing Step for debugging
 # Print JSON File using 'cat'
-  step_print_JSON:
+  step_print_JSON_metadata:
+    run: print_file.cwl
+    in:
+      file: download_metadata/report
+    out: []
+
+    label: Print JSON file after download metadata
+  
+
+# Testing Step for debugging
+# Print JSON File using 'cat'
+  step_print_JSON_metadata:
     run: print_file.cwl
     in:
       file: download_data/report
     out: []
 
-    label: Print JSON file
-  
-  
+    label: Print JSON file after download data
+
 # Testing Step for debugging
 # Print JSON File using 'cat'
 #   step_print_runscript:
