@@ -23,7 +23,6 @@ inputs:
     inputBinding:
       position: 2
       prefix: --watchdog
-    
 
 outputs: 
   scoredreport:
