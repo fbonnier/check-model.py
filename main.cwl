@@ -73,14 +73,14 @@ steps:
 
 # Download data
 # Download code, inputs, documentation
-  download_data: 
-    run: download_data.cwl
-    in:
-      report: download_metadata/report
+  # download_data: 
+  #   run: download_data.cwl
+  #   in:
+  #     report: download_metadata/report
       
-    out: [report]
+  #   out: [report]
 
-    label: Download Data
+  #   label: Download Data
 
   # script_generator:
   #   run: script_generator.cwl
@@ -144,13 +144,13 @@ steps:
 
 # Testing Step for debugging
 # Print JSON File using 'cat'
-  step_print_JSON_metadata:
-    run: print_file.cwl
-    in:
-      file: download_data/report
-    out: []
+  # step_print_JSON_data:
+  #   run: print_file.cwl
+  #   in:
+  #     file: download_data/report
+  #   out: []
 
-    label: Print JSON file after download data
+  #   label: Print JSON file after download data
 
 # Testing Step for debugging
 # Print JSON File using 'cat'
