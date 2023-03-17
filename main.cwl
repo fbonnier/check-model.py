@@ -60,61 +60,113 @@ steps:
 
 # Download workflow and meta
 # JSON File contains metadata and is localized in {workdir}, a.k.a {self.path/..}
-  step1_download_metadata: 
+  download_metadata: 
     run: download_metadata.cwl
     in:
       hbp_token: hbp_token
       model_instance_id: model_instance_id
       instruction: instruction
-      # workdir: workdir
-
-
-
-    out: [metareport]
+      
+    out: [report]
 
     label: Download Metadata
 
-
-  step2_script_generator:
-    run: script_generator.cwl
+# Download data
+# Download code, inputs, documentation
+  download_data: 
+    run: download_data.cwl
     in:
-      jsonfile: step1_download_metadata/metareport
-
-    out: [runscript_bash]
-    label: Generates runscript to run the model
-
-
-
-# Testing Step for debugging
-# Print JSON File using 'cat'
-  step_print_JSON:
-    run: print_json_file.cwl
-    in:
-      jsonfile: step1_download_metadata/metareport
-    out: []
-
-    label: Print JSON file
-  
-  
-# Testing Step for debugging
-# Print JSON File using 'cat'
-  step_print_runscript:
-    in:
-      runscript_bash: step2_script_generator/runscript_bash
-    out: []
-    label: Print runscript
-    run:
-      class: CommandLineTool
-      baseCommand: cat
-      inputs:
-        runscript_bash: 
-          type: File
-          inputBinding:
-            position: 1
-      outputs: []
+      report: download_metadata/report
       
-  #     outputs: []
-  #     stdout: stdout
+    out: [report]
+
+    label: Download Data
+
+  # script_generator:
+  #   run: script_generator.cwl
   #   in:
-  #     jsonfile: step1_download_metadata/jsonfile
-  #   out: []
+  #     jsonfile: download_data/report
+
+  #   out: [runscript_bash]
+  #   label: Generates runscript to run the model
+
+  # run_model:
+  # # TODO
+  #   run: run_model.cwl
+  #   in:
+  #     runscript: script_generator/runscript_bash
+  #     jsonfile: download_metadata/report
+
+  #   out: [runreport, watchdog_report]
+
+  #   label: Run model
+
+  # verification_output_analysis:
+  # # TODO
+  #   run: verification_output_analysis.cwl
+  #   in:
+  #     runreport: run_model/runreport
+  #     watchdog_report: run_model/watchdog_report
+
+  #   out: [scoredreport]
+
+  #   label: Verification output comparison
+
+  # verification_documentation_analysis:
+  # # TODO
+  #   run: verification_documentation_analysis.cwl
+  #   in:
+  #     report: download_data/report
+
+  #   out: [scoredreport]
+
+  #   label: Verification documentation analysis
+
+  # decision_maker:
+  # # TODO
+  #   run: decision_maker.cwl
+  #   in:
+  #     score_output_analysis: verification_output_analysis/scoredreport
+  #     score_documentation_analysis: verification_documentation_analysis/scoredreport
+
+  #   out: [decision_report]
+
+# Testing Step for debugging
+# Print JSON File using 'cat'
+  step_print_JSON_metadata:
+    run: print_file.cwl
+    in:
+      file: download_metadata/report
+    out: []
+
+    label: Print JSON file after download metadata
+  
+
+# Testing Step for debugging
+# Print JSON File using 'cat'
+  step_print_JSON_data:
+    run: print_file.cwl
+    in:
+      file: download_data/report
+    out: []
+
+    label: Print JSON file after download data
+
+# Testing Step for debugging
+# Print JSON File using 'cat'
+#   step_print_runscript:
+      # run: print_file.cwl
+#     in:
+#       file: script_generator/runscript_bash
+#     out: []
+#     label: Print runscript
+
+# # Testing Step for debugging
+# # Print Watchdog Log File using 'cat'
+#   step_print_watchdog_report:
+#     run: print_file.cwl
+#     in:
+#       file: run_model/watchdog_report
+#     out: []
+
+#     label: Print Watchdog file
