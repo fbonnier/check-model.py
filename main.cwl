@@ -17,6 +17,8 @@ inputs:
 
   instruction: string
 
+  pre_instructions: string
+
   # workdir: Directory
   # workdir: string
 
@@ -66,6 +68,7 @@ steps:
       hbp_token: hbp_token
       model_instance_id: model_instance_id
       instruction: instruction
+      pre_instructions: pre_instructions
       
     out: [report]
 

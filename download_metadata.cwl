@@ -39,6 +39,12 @@ inputs:
     inputBinding:
       position: 3
       prefix: --run
+
+  pre_instructions: 
+    type: string
+    inputBinding:
+      position: 4
+      prefix: --pre-run
     # dirname: workdir
     # basename: 
     
