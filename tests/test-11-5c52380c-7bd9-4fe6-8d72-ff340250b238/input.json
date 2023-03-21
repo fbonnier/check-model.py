@@ -1,0 +1,3 @@
+{"pre-instruction": "export PYTHONPATH=$WORKDIR/multi-area-model/:$PYTHONPATH; pip3 install -r $WORKDIR/multi-area-model/requirements.txt; pip3 install -r $WORKDIR/multi-area-model/figures/Schmidt2018/additional_requirements.txt; pip3 install -r $WORKDIR/multi-area-model/figures/Schmidt2018_dyn/additional_requirements.txt",
+"instruction": "python3 $WORKDIR/multi-area-model/run_example_fullscale.py",
+"model_instance_id": "5c52380c-7bd9-4fe6-8d72-ff340250b238"}
