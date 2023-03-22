@@ -6,9 +6,9 @@ label: Model Verification TODO
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-hints:
-  DockerRequirement:
-    dockerPull: docker-registry.ebrains.eu/hbp-model-validation/docker-ebrains-base
+# hints:
+#   DockerRequirement:
+#     dockerPull: docker-registry.ebrains.eu/hbp-model-validation/docker-ebrains-base
 
 inputs:
   hbp_token: string
@@ -30,7 +30,10 @@ inputs:
 
     
 requirements:
-  InlineJavascriptRequirement: {}
+  - class: InlineJavascriptRequirement
+  - class: DockerRequirement
+    dockerPull: docker-registry.ebrains.eu/hbp-model-validation/docker-ebrains-base
+    dockerOutputDirectory: /output
   # InitialWorkDirRequirement:
   #   listing:
   #     - $(inputs.workdir)
@@ -85,24 +88,27 @@ steps:
 
     label: Download Data
 
-  # script_generator:
-  #   run: script_generator.cwl
-  #   in:
-  #     jsonfile: download_data/report
+  script_generator:
+    run: script_generator.cwl
+    in:
+      jsonfile: download_data/report
 
-  #   out: [runscript_bash]
-  #   label: Generates runscript to run the model
+    out: [runscript_bash]
+    label: Generates runscript to run the model
 
-  # run_model:
-  # # TODO
-  #   run: run_model.cwl
-  #   in:
-  #     runscript: script_generator/runscript_bash
-  #     jsonfile: download_metadata/report
+  run_model:
+  # TODO
+    run: run_model.cwl
+    in:
+      runscript: script_generator/runscript_bash
+      # jsonfile: download_metadata/report
 
-  #   out: [runreport, watchdog_report]
+    # out: [runreport, watchdog_report]
 
-  #   label: Run model
+    out: [watchdog_report]
+
+    label: Run model
+
 
   # verification_output_analysis:
   # # TODO
@@ -136,13 +142,13 @@ steps:
 
 # Testing Step for debugging
 # Print JSON File using 'cat'
-  step_print_JSON_metadata:
-    run: print_file.cwl
-    in:
-      file: download_metadata/report
-    out: []
+  # step_print_JSON_metadata:
+  #   run: print_file.cwl
+  #   in:
+  #     file: download_metadata/report
+  #   out: []
 
-    label: Print JSON file after download metadata
+  #   label: Print JSON file after download metadata
   
 
 # Testing Step for debugging
@@ -157,12 +163,12 @@ steps:
 
 # Testing Step for debugging
 # Print JSON File using 'cat'
-#   step_print_runscript:
-      # run: print_file.cwl
-#     in:
-#       file: script_generator/runscript_bash
-#     out: []
-#     label: Print runscript
+  step_print_runscript:
+    run: print_file.cwl
+    in:
+      file: script_generator/runscript_bash
+    out: []
+    label: Print runscript
 
 # # Testing Step for debugging
 # # Print Watchdog Log File using 'cat'

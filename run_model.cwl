@@ -15,17 +15,17 @@ inputs:
         inputBinding:
             position: 1
 
-    jsonfile:
-        type: File
-        inputBinding:
-            position: 2
+    # jsonfile:
+    #     type: File
+    #     inputBinding:
+    #         position: 2
     
 
 outputs: 
-    runreport:
-        type: File
-        outputBinding:
-          glob: runreport.json
+    # runreport:
+    #     type: File
+    #     outputBinding:
+    #       glob: runreport.json
 
     watchdog_report:
         type: File
