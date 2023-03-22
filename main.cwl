@@ -33,7 +33,7 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: DockerRequirement
     dockerPull: docker-registry.ebrains.eu/hbp-model-validation/docker-ebrains-base
-    dockerOutputDirectory: /output
+    # dockerOutputDirectory: /output
   # InitialWorkDirRequirement:
   #   listing:
   #     - $(inputs.workdir)
