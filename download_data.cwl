@@ -20,6 +20,20 @@ outputs:
     type: File
     outputBinding:
       glob: report.json
+
+  outputs_folder:
+    type:
+      type: array
+      items: [ File, Directory ]
+      outputBinding:
+        glob: "./outputs/*"
+    
+  code_folder:
+    type:
+      type: array
+      items: [File, Directory]
+      outputBinding:
+        glob: "./code/*"
   
 requirements: []
 'sbg:license': CeCiLL

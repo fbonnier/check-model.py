@@ -6,7 +6,6 @@ label: Run Model
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-requirements: []
 baseCommand: [sh]
 
 inputs:
@@ -14,6 +13,20 @@ inputs:
         type: File
         inputBinding:
             position: 1
+
+    code_folder:
+        type:
+            type: array
+            items: [File, Directory]
+            # inputBinding:
+            #     position: 2
+
+    outputs_folder:
+        type:
+            type: array
+            items: [File, Directory]
+            # inputBinding:
+            #     position: 3
 
     # jsonfile:
     #     type: File
@@ -31,3 +44,10 @@ outputs:
         type: File
         outputBinding:
             glob: watchdog_log.txt
+
+    workdir:
+        type:
+            type: array
+            items: [File, Directory]
+            outputBinding:
+                glob: "./*"
