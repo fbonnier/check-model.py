@@ -15,16 +15,12 @@ inputs:
             position: 1
 
     code_folder:
-        type:
-            type: array
-            items: [File, Directory]
+        type: Directory
             # inputBinding:
             #     position: 2
 
     outputs_folder:
-        type:
-            type: array
-            items: [File, Directory]
+        type: Directory
             # inputBinding:
             #     position: 3
 
@@ -46,8 +42,14 @@ outputs:
             glob: watchdog_log.txt
 
     workdir:
-        type:
-            type: array
-            items: [File, Directory]
-            outputBinding:
-                glob: "./*"
+        type: Directory
+        outputBinding:
+            glob: "./"
+
+
+
+requirements:
+    InitialWorkDirRequirement:
+        listing:
+            - $(inputs.code_folder)
+            - $(inputs.outputs_folder)
