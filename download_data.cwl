@@ -22,18 +22,14 @@ outputs:
       glob: report.json
 
   outputs_folder:
-    type:
-      type: array
-      items: [ File, Directory ]
-      outputBinding:
-        glob: "./outputs/*"
+    type: Directory
+    outputBinding:
+      glob: "./outputs/"
     
   code_folder:
-    type:
-      type: array
-      items: [File, Directory]
-      outputBinding:
-        glob: "./code/*"
+    type: Directory
+    outputBinding:
+      glob: "./code/"
   
 requirements: []
 'sbg:license': CeCiLL

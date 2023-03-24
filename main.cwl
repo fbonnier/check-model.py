@@ -165,54 +165,54 @@ steps:
   #   label: Print JSON file after download metadata
   
 
-# Testing Step for debugging
-# Print JSON File using 'cat'
-  step_print_JSON_data:
-    run: print_file.cwl
-    in:
-      file: download_data/report
-    out: []
+# # Testing Step for debugging
+# # Print JSON File using 'cat'
+#   step_print_JSON_data:
+#     run: print_file.cwl
+#     in:
+#       file: download_data/report
+#     out: []
 
-    label: Print JSON file after download data
+#     label: Print JSON file after download data
 
-# Testing Step for debugging
-# Print JSON File using 'cat'
-  step_print_runscript:
-    run: print_file.cwl
-    in:
-      file: script_generator/runscript_bash
-    out: []
-    label: Print runscript
+# # Testing Step for debugging
+# # Print JSON File using 'cat'
+#   step_print_runscript:
+#     run: print_file.cwl
+#     in:
+#       file: script_generator/runscript_bash
+#     out: []
+#     label: Print runscript
 
-# Testing Step for debugging
-# Print Ls 
-  step_ls_download_data:
-    run: 
-      class: CommandLineTool
-      cwlVersion: v1.0
-      baseCommand: ls
-      stdout: ./output.txt
-      inputs:
-        outputs_folder:
-          type:
-            type: array
-            items: [Directory, File]
-          inputBinding:
-            position: 1
+# # Testing Step for debugging
+# # Print Ls 
+#   step_ls_download_data:
+#     run: 
+#       class: CommandLineTool
+#       cwlVersion: v1.0
+#       baseCommand: ls
+#       stdout: ./output.txt
+#       inputs:
+#         outputs_folder:
+#           type:
+#             type: array
+#             items: [Directory, File]
+#           inputBinding:
+#             position: 1
 
-        code_folder:
-          type:
-            type: array
-            items: [Directory, File]
-          inputBinding:
-            position: 1
-      outputs: 
-        out: stdout  
-    in:
-      outputs_folder: download_data/outputs_folder
-      code_folder: download_data/code_folder
-    out: [out]
-    label: Print runscript
+#         code_folder:
+#           type:
+#             type: array
+#             items: [Directory, File]
+#           inputBinding:
+#             position: 1
+#       outputs: 
+#         out: stdout  
+#     in:
+#       outputs_folder: download_data/outputs_folder
+#       code_folder: download_data/code_folder
+#     out: [out]
+#     label: Print runscript
 
 
 
