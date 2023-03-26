@@ -6,26 +6,37 @@ label: Output comparison verification method
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-requirements: []
 baseCommand: ["file_compare"]
 
 inputs:
-  runreport:
+  report:
     type: File
-    format: json
+    # format: json
     inputBinding:
       position: 1
       prefix: --report
 
   watchdog_report:
     type: File
-    format: txt
+    # format: txt
     inputBinding:
       position: 2
       prefix: --watchdog
 
+  workdir:
+    type: Directory
+
 outputs: 
-  scoredreport:
+  report:
     type: File
     outputBinding:
       glob: report.json
+
+
+requirements:
+    InitialWorkDirRequirement:
+        listing:
+            - entry: $(inputs.workdir)
+              writable: true
+            # - entry: $(inputs.outputs_folder)
+              # writable: true

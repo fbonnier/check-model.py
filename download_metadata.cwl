@@ -52,5 +52,6 @@ inputs:
 outputs: 
     report:
         type: File
+        # format: json
         outputBinding:
           glob: report.json

@@ -112,7 +112,6 @@ steps:
     label: Generates runscript to run the model
 
   run_model:
-  # TODO
     run: run_model.cwl
     in:
       runscript: script_generator/runscript_bash
@@ -124,16 +123,17 @@ steps:
     label: Run model
 
 
-  # verification_output_analysis:
-  # # TODO
-  #   run: verification_output_analysis.cwl
-  #   in:
-  #     runreport: run_model/runreport
-  #     watchdog_report: run_model/watchdog_report
+  verification_output_analysis:
+  # TODO
+    run: verification_output_analysis.cwl
+    in:
+      report: download_data/report
+      watchdog_report: run_model/watchdog_report
+      workdir: run_model/workdir
 
-  #   out: [scoredreport]
+    out: [report]
 
-  #   label: Verification output comparison
+    label: Verification output comparison
 
   # verification_documentation_analysis:
   # # TODO

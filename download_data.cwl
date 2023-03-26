@@ -11,6 +11,7 @@ baseCommand: ["hbp_download_data"]
 inputs:
   report:
     type: File
+    # format: json
     inputBinding:
       position: 1
       prefix: --json
@@ -18,6 +19,7 @@ inputs:
 outputs:
   report:
     type: File
+    # format: json
     outputBinding:
       glob: report.json
 

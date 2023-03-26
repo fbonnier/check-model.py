@@ -18,6 +18,7 @@ baseCommand: ["script_generator"]
 inputs:
   jsonfile:
     type: File
+    # format: json
     inputBinding:
         position: 1
         prefix: --json
@@ -26,5 +27,6 @@ inputs:
 outputs: 
     runscript_bash:
         type: File
+        # format: sh
         outputBinding:
           glob: run_me.sh
