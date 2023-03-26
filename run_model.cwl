@@ -51,5 +51,7 @@ outputs:
 requirements:
     InitialWorkDirRequirement:
         listing:
-            - $(inputs.code_folder)
-            - $(inputs.outputs_folder)
+            - entry: $(inputs.code_folder)
+              writable: true
+            - entry: $(inputs.outputs_folder)
+              writable: true
