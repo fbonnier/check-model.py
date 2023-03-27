@@ -41,11 +41,15 @@ outputs:
         outputBinding:
             glob: watchdog_log.txt
 
-    workdir:
+    outputs_folder:
         type: Directory
         outputBinding:
-            glob: "./"
+            glob: "./outputs/"
 
+    code_folder:
+        type: Directory
+        outputBinding:
+            glob: "./code/"
 
 
 requirements:

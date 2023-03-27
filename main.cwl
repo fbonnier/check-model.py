@@ -118,7 +118,7 @@ steps:
       code_folder: download_data/code_folder
       outputs_folder: download_data/outputs_folder
       
-    out: [watchdog_report, workdir]
+    out: [watchdog_report, outputs_folder, code_folder]
 
     label: Run model
 
@@ -129,7 +129,8 @@ steps:
     in:
       report: download_data/report
       watchdog_report: run_model/watchdog_report
-      workdir: run_model/workdir
+      outputs_folder: run_model/outputs_folder
+      code_folder: run_model/code_folder
 
     out: [report]
 

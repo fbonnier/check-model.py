@@ -23,7 +23,10 @@ inputs:
       position: 2
       prefix: --watchdog
 
-  workdir:
+  outputs_folder:
+    type: Directory
+    
+  code_folder:
     type: Directory
 
 outputs: 
@@ -36,7 +39,7 @@ outputs:
 requirements:
     InitialWorkDirRequirement:
         listing:
-            - entry: $(inputs.workdir)
+            - entry: $(inputs.code_folder)
               writable: true
-            # - entry: $(inputs.outputs_folder)
-              # writable: true
+            - entry: $(inputs.outputs_folder)
+              writable: true
