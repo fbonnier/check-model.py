@@ -6,7 +6,6 @@ label: Download Metadata TODO
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-requirements: []
   # - class: InitialWorkDirRequirement
   #   listing:
   #     -$(inputs.workdir)

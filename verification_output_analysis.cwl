@@ -26,7 +26,7 @@ outputs:
   report:
     type: File
     outputBinding:
-      glob: report.json
+      glob: $(inputs.report.basename)
 
 
 requirements:

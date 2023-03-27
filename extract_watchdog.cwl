@@ -27,7 +27,11 @@ outputs:
   report:
     type: File
     outputBinding:
-      glob: report.json
+      glob: $(inputs.report.basename)
 
 
-requirements: []
+requirements:                                                                   
+  InitialWorkDirRequirement: 
+    listing:
+      - entry: $(inputs.report)
+        writable: True

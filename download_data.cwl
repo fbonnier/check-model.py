@@ -8,6 +8,12 @@ $namespaces:
 
 baseCommand: ["hbp_download_data"]
 
+requirements:                                                                   
+  InitialWorkDirRequirement: 
+    listing:
+      - entry: $(inputs.report)
+        writable: True
+
 inputs:
   report:
     type: File
@@ -21,7 +27,7 @@ outputs:
     type: File
     # format: json
     outputBinding:
-      glob: report.json
+      glob: $(inputs.report.basename)
 
   outputs_folder:
     type: Directory
@@ -33,6 +39,6 @@ outputs:
     outputBinding:
       glob: "./code/"
   
-requirements: []
+
 'sbg:license': CeCiLL
 'sbg:toolAuthor': Florent Bonnier

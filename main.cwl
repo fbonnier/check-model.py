@@ -127,6 +127,8 @@ steps:
     in:
       watchdog_report: run_model/watchdog_report
       report: download_data/report
+    out: [report]
+    label: Extract Watchdog
 
   verification_output_analysis:
   # TODO
