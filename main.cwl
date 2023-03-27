@@ -122,13 +122,17 @@ steps:
 
     label: Run model
 
+  extract_watchdog:
+    run: extract_watchdog.cwl
+    in:
+      watchdog_report: run_model/watchdog_report
+      report: download_data/report
 
   verification_output_analysis:
   # TODO
     run: verification_output_analysis.cwl
     in:
-      report: download_data/report
-      watchdog_report: run_model/watchdog_report
+      report: extract_watchdog/report
       outputs_folder: run_model/outputs_folder
       code_folder: run_model/code_folder
 

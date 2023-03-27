@@ -14,14 +14,7 @@ inputs:
     # format: json
     inputBinding:
       position: 1
-      prefix: --report
-
-  watchdog_report:
-    type: File
-    # format: txt
-    inputBinding:
-      position: 2
-      prefix: --watchdog
+      prefix: --json
 
   outputs_folder:
     type: Directory
