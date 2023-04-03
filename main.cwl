@@ -127,6 +127,9 @@ steps:
     in:
       watchdog_report: run_model/watchdog_report
       report: download_data/report
+      code_folder: run_model/code_folder
+      outputs_folder: run_model/outputs_folder
+      
     out: [report]
     label: Extract Watchdog
 

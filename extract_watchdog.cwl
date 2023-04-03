@@ -23,6 +23,12 @@ inputs:
       position: 2
       prefix: --watchdog
 
+  code_folder:
+    type: Directory
+    
+  outputs_folder:
+    type: Directory
+          
 outputs: 
   report:
     type: File
@@ -35,3 +41,7 @@ requirements:
     listing:
       - entry: $(inputs.report)
         writable: True
+      - entry: $(inputs.code_folder)
+        writable: true
+      - entry: $(inputs.outputs_folder)
+        writable: true
