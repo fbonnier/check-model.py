@@ -33,6 +33,8 @@ requirements:
     InitialWorkDirRequirement:
         listing:
             - entry: $(inputs.code_folder)
-              writable: true
+              writable: True
             - entry: $(inputs.outputs_folder)
-              writable: true
+              writable: True
+            - entry: $(inputs.report)
+              writable: True

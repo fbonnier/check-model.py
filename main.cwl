@@ -134,7 +134,6 @@ steps:
     label: Extract Watchdog
 
   verification_output_analysis:
-  # TODO
     run: verification_output_analysis.cwl
     in:
       report: extract_watchdog/report
