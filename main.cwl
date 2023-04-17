@@ -154,14 +154,14 @@ steps:
 
   #   label: Verification documentation analysis
 
-  # decision_maker:
-  # # TODO
-  #   run: decision_maker.cwl
-  #   in:
-  #     score_output_analysis: verification_output_analysis/scoredreport
-  #     score_documentation_analysis: verification_documentation_analysis/scoredreport
-
-  #   out: [decision_report]
+  decision_maker:
+  # TODO
+    run: decision_maker.cwl
+    in:
+      report_list: [verification_output_analysis/report]
+      
+    out: [decision_report]
+    label: Decision Maker
 
 # Testing Step for debugging
 # Print JSON File using 'cat'

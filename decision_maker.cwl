@@ -6,28 +6,27 @@ label: Decision Maker TODO
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-requirements: []
-  # - class: InitialWorkDirRequirement
-  #   listing:
-  #     -$(inputs.workdir)
-
-  # 'sbg:license': CeCiLL
-  # 'sbg:toolAuthor': Florent Bonnier
 baseCommand: ["decision_maker"]
 
 inputs:
-  score_output_analysis:
-    type: File
+  report_list:
+    type: [File]
     inputBinding:
       position: 1
-  score_documentation_analysis:
-    type: File
-    inputBinding:
-      position: 2
+      prefix: --json
+  # score_documentation_analysis:
+  #   type: File
+  #   inputBinding:
+  #     position: 2
 
 outputs: 
     decision_report:
         type: File
-        format: json
         outputBinding:
-          glob: decision_report.json
+          glob: report.json
+
+requirements: []
+    # InitialWorkDirRequirement:
+    #     listing:
+    #         - entry: $(inputs.verification_output_analysis_report)
+    #           writable: True
