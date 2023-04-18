@@ -158,9 +158,12 @@ steps:
   # TODO
     run: decision_maker.cwl
     in:
-      report_list: [verification_output_analysis/report]
+      report_list:
+        source: [verification_output_analysis/report]
+        linkMerge: merge_flattened
       
-    out: [decision_report]
+    # out: [decision_report]
+    out: []
     label: Decision Maker
 
 # Testing Step for debugging

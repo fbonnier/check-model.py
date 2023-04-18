@@ -10,20 +10,21 @@ baseCommand: ["decision_maker"]
 
 inputs:
   report_list:
-    type: [File]
+    type: File[]
     inputBinding:
       position: 1
       prefix: --json
+      separate: true
   # score_documentation_analysis:
   #   type: File
   #   inputBinding:
   #     position: 2
 
-outputs: 
-    decision_report:
-        type: File
-        outputBinding:
-          glob: report.json
+outputs: []
+    # decision_report:
+    #     type: File
+    #     outputBinding:
+    #       glob: report.json
 
 requirements: []
     # InitialWorkDirRequirement:
