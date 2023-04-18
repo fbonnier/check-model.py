@@ -1,5 +1,5 @@
-pre_instructions: export PYTHONPATH=$WORKDIR/263259/HH_project/single_cell_models/:$PYTHONPATH; pip3 install cell-library
+pre_instructions: export PYTHONPATH=\$WORKDIR/code/263259/HH_project/:\$WORKDIR/code/263259/HH_project/single_cell_models/:$PYTHONPATH; pip3 install matplotlib==2.6.3
 
-instruction: python3 $WORKDIR/263259/HH_project/network_simulations/ntwk_sim_demo.py --CONFIG 'HH_RS--HH_FS--CONFIG1' --tstop 5000
+instruction: python3 \$WORKDIR/code/263259/HH_project/network_simulations/ntwk_sim_demo.py --CONFIG 'HH_RS--HH_FS--CONFIG1' --tstop 5000 -o \$WORKDIR/code/263259/HH_project/network_simulations/data/example.npy
 
 model_instance_id: fa393b61-92ab-4925-ad53-d36cde34c5d6
