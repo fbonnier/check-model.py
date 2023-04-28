@@ -65,16 +65,16 @@ outputs:  []
 
 steps:
 
-  # Get Credentials.
-  # USELESS ?
-  step0_get_credentials:
-    run: get_credentials.cwl
+  # # Get Credentials.
+  # # USELESS ?
+  # step0_get_credentials:
+  #   run: get_credentials.cwl
   
-    in:
-      hbp_token: hbp_token
+  #   in:
+  #     hbp_token: hbp_token
 
-    out: []
-    label: Get Credentials
+  #   out: []
+  #   label: Get Credentials
 
 
 
