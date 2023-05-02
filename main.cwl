@@ -109,7 +109,7 @@ steps:
       jsonfile: download_data/report
 
     out: [runscript_bash]
-    label: Generates runscript to run the model
+    label: Generates runscript
 
   run_model:
     run: run_model.cwl
@@ -154,17 +154,17 @@ steps:
 
   #   label: Verification documentation analysis
 
-  decision_maker:
-  # TODO
-    run: decision_maker.cwl
-    in:
-      report_list:
-        source: [verification_output_analysis/report]
-        linkMerge: merge_flattened
+  # decision_maker:
+  # # TODO
+  #   run: decision_maker.cwl
+  #   in:
+  #     report_list:
+  #       source: [verification_output_analysis/report, verification_documentation_analysis/scoredreport]
+  #       linkMerge: merge_flattened
       
-    # out: [decision_report]
-    out: []
-    label: Decision Maker
+  #   # out: [decision_report]
+  #   out: []
+  #   label: Decision Maker
 
 # Testing Step for debugging
 # Print JSON File using 'cat'
