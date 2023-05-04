@@ -26,7 +26,9 @@ outputs:
   report:
     type: File
     outputBinding:
-      glob: $(inputs.report.basename)
+      #glob: $(inputs.report.basename)
+      #glob: file_compare_report.json
+      glob: file_compare_report.json
 
 
 requirements:
@@ -37,4 +39,4 @@ requirements:
             - entry: $(inputs.outputs_folder)
               writable: True
             - entry: $(inputs.report)
-              writable: True
+              writable: False
