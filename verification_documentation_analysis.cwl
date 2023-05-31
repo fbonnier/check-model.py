@@ -6,8 +6,7 @@ label: Documentation analysis
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-requirements: []
-baseCommand: ["documentation_check"]
+baseCommand: ["documentation_check", "--out documentation_report.json"]
 
 inputs:
   report:
@@ -16,9 +15,22 @@ inputs:
     inputBinding:
       position: 1
       prefix: --json
+  code_folder:
+    type: Directory
+    inputBinding:
+      position: 2
+      prefix: --repository
 
 outputs: 
   scoredreport:
     type: File
     outputBinding:
       glob: documentation_report.json
+
+requirements:
+    InitialWorkDirRequirement:
+        listing:
+            - entry: $(inputs.code_folder)
+              writable: True
+            - entry: $(inputs.report)
+              writable: False

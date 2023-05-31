@@ -155,6 +155,7 @@ steps:
     run: verification_documentation_analysis.cwl
     in:
       report: download_data/report
+      code_folder: download_data/code_folder
 
     out: [scoredreport]
     label: Verification documentation analysis
