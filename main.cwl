@@ -49,6 +49,7 @@ requirements:
   #     - $(inputs.code_folder)
   #     - $(inputs.outputs_folder)
   - class: InlineJavascriptRequirement
+  - class: MultipleInputFeatureRequirement
   # InitialWorkDirRequirement:
   #   listing:
   #     - $(inputs.workdir)
@@ -103,6 +104,7 @@ steps:
 
     label: Download Data
 
+# Generates script if available
   script_generator:
     run: script_generator.cwl
     in:
@@ -111,6 +113,7 @@ steps:
     out: [runscript_bash]
     label: Generates runscript
 
+# Run the model if script has been generated
   run_model:
     run: run_model.cwl
     in:
@@ -122,6 +125,7 @@ steps:
 
     label: Run model
 
+# Get generated output files after model's run
   extract_watchdog:
     run: extract_watchdog.cwl
     in:
@@ -133,6 +137,7 @@ steps:
     out: [report]
     label: Extract Watchdog
 
+# Verification Method: Compare output files to expected ones
   verification_output_analysis:
     run: verification_output_analysis.cwl
     in:
@@ -144,27 +149,27 @@ steps:
 
     label: Verification output comparison
 
-  # verification_documentation_analysis:
-  # # TODO
-  #   run: verification_documentation_analysis.cwl
-  #   in:
-  #     report: download_data/report
+# Verification Method: Analyze documentation quality
+  verification_documentation_analysis:
+  # TODO
+    run: verification_documentation_analysis.cwl
+    in:
+      report: download_data/report
 
-  #   out: [scoredreport]
+    out: [scoredreport]
+    label: Verification documentation analysis
 
-  #   label: Verification documentation analysis
-
-  # decision_maker:
-  # # TODO
-  #   run: decision_maker.cwl
-  #   in:
-  #     report_list:
-  #       source: [verification_output_analysis/report, verification_documentation_analysis/scoredreport]
-  #       linkMerge: merge_flattened
+# Compile all verification scores and report to propose final verification score
+  decision_maker:
+  # TODO
+    run: decision_maker.cwl
+    in:
+      report_list:
+        source: [verification_output_analysis/report, verification_documentation_analysis/scoredreport]
+        linkMerge: merge_flattened
       
-  #   # out: [decision_report]
-  #   out: []
-  #   label: Decision Maker
+    out: [decision_report]
+    label: Decision Maker
 
 # Testing Step for debugging
 # Print JSON File using 'cat'

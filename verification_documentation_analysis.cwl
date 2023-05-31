@@ -12,7 +12,7 @@ baseCommand: ["documentation_check"]
 inputs:
   report:
     type: File
-    format: json
+    # format: json
     inputBinding:
       position: 1
       prefix: --json

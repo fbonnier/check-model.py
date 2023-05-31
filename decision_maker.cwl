@@ -20,11 +20,11 @@ inputs:
   #   inputBinding:
   #     position: 2
 
-outputs: []
-    # decision_report:
-    #     type: File
-    #     outputBinding:
-    #       glob: report.json
+outputs: 
+    decision_report:
+        type: File
+        outputBinding:
+          glob: report.json
 
 requirements: []
     # InitialWorkDirRequirement:
