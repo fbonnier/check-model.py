@@ -6,7 +6,7 @@ label: Documentation analysis
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-baseCommand: ["documentation_check", "--out documentation_report.json"]
+baseCommand: ["documentation_check", "--out", "documentation_report.json"]
 
 inputs:
   report:
