@@ -1,0 +1,17 @@
+- name: Run tests with specified CWL runner
+  # You may pin to the exact commit or the version.
+  # uses: common-workflow-lab/run-tests@32fb555b66d5831e9fdcb0fec152590f76f1cd84
+  uses: common-workflow-lab/run-tests@v1
+  with:
+    # A file that lists test cases in cwltest format
+    test-list: 
+    # full path to CWL runner to be tested
+    runner: 
+    # timeout in seconds
+    timeout: # optional, default is 30
+    # skip installing python interpreter
+    skip-python-install: # optional
+    # whether this action always succeeds even if some tests fail
+    allow-failure: # optional
+    # title for test result
+    result-title: # optional, default is Test result
