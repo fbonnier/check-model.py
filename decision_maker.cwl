@@ -6,7 +6,7 @@ label: Decision Maker TODO
 $namespaces:
   sbg: 'https://www.sevenbridges.com/'
 
-baseCommand: ["decision_maker"]
+baseCommand: ["decision_maker", "--out", "decision_report.json"]
 
 inputs:
   report_list:
@@ -15,16 +15,12 @@ inputs:
       position: 1
       prefix: --json
       separate: true
-  # score_documentation_analysis:
-  #   type: File
-  #   inputBinding:
-  #     position: 2
 
 outputs: 
     decision_report:
         type: File
         outputBinding:
-          glob: report.json
+          glob: final_report.json
 
 requirements: []
     # InitialWorkDirRequirement:
